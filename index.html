@@ -1,0 +1,1592 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Userscope Permissions Walkthrough</title>
+</head>
+<body>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap">
+<style>
+  /* ---------------------------------------------------------------
+     Walkthrough shell tokens. Deliberately separate from the aiRA
+     token set below, so a reviewer can always tell the harness from
+     the product.
+     --------------------------------------------------------------- */
+  :root {
+    /* This harness and the product inside it are a light-mode design. Saying so
+       stops the host's scheme resolving UA system colours (buttontext) to white. */
+    color-scheme: light;
+    --wt-canvas: #F6F8FA;
+    --wt-surface: #FFFFFF;
+    --wt-border: #E2E6EB;
+    --wt-ink: #111827;
+    --wt-ink-2: #364152;
+    --wt-ink-3: #6B7785;
+    --wt-accent: #3438C9;
+    --wt-accent-bg: #EEF0FF;
+    --wt-danger: #B11E1E;
+    --wt-danger-bg: #FBEAEA;
+  }
+
+  * { box-sizing: border-box; }
+  html { background: var(--wt-canvas); }
+  body {
+    margin: 0;
+    background: var(--wt-canvas);
+    color: var(--wt-ink);
+    font-family: "Roboto", system-ui, -apple-system, sans-serif;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  button { font-family: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--wt-accent); outline-offset: 2px; }
+
+  .wt { height: 100vh; min-width: 1100px; display: flex; flex-direction: column; background: var(--wt-canvas); }
+  .wbody { flex: 1; display: flex; min-height: 0; }
+  .rail {
+    width: 220px; flex-shrink: 0; overflow-y: auto; padding: 20px 0 28px;
+    background: var(--wt-surface); border-right: 1px solid var(--wt-border);
+  }
+  .stage {
+    flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center;
+    overflow: hidden; padding: 24px;
+  }
+  .insp {
+    width: 280px; flex-shrink: 0; overflow-y: auto; padding: 20px 16px 28px;
+    background: var(--wt-surface); border-left: 1px solid var(--wt-border);
+  }
+
+  /* Top bar */
+  .wtop {
+    height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 24px;
+    background: var(--wt-surface); border-bottom: 1px solid var(--wt-border);
+  }
+  .wtop .mark { display: flex; }
+  .wtop .wname { font-size: 16px; line-height: 24px; font-weight: 500; }
+  .wtop .sep { flex: 1; }
+  .sid {
+    font-size: 11px; line-height: 16px; font-weight: 700; letter-spacing: 0.06em;
+    color: var(--wt-accent); background: var(--wt-accent-bg); border-radius: 4px; padding: 2px 8px;
+  }
+  .wtop .sname { font-size: 14px; line-height: 20px; color: var(--wt-ink-2); }
+  .wbtn {
+    display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: 8px;
+    border: 1px solid var(--wt-border); background: var(--wt-surface);
+    font-size: 14px; line-height: 20px; color: var(--wt-ink-2); cursor: pointer;
+  }
+  .wbtn:hover { background: var(--wt-accent-bg); }
+  .wbtn.on { background: var(--wt-accent-bg); border-color: var(--wt-accent); color: var(--wt-accent); }
+
+  /* Left rail */
+  .rsec { padding: 0 0 20px; }
+  .rsec .rh { padding: 0 16px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 4px; }
+  .rsec .rt {
+    font-size: 11px; line-height: 16px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--wt-ink-3);
+  }
+  .rsec .rd { font-size: 13px; line-height: 20px; color: var(--wt-ink-3); }
+  .rrow {
+    display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 16px; border: 0;
+    background: none; text-align: left; font-family: inherit; cursor: pointer;
+  }
+  .rrow:hover { background: var(--wt-accent-bg); }
+  .rrow .ri { width: 24px; flex-shrink: 0; font-size: 13px; line-height: 20px; color: var(--wt-ink-3); }
+  .rrow .rn { font-size: 14px; line-height: 20px; color: var(--wt-ink); }
+  .rrow.on { background: var(--wt-accent-bg); }
+  .rrow.on .ri, .rrow.on .rn { color: var(--wt-accent); font-weight: 500; }
+
+  /* Centre stage */
+  .holder { position: relative; }
+  .frame {
+    width: 1440px; height: 900px; transform-origin: top left; border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--wt-border); background: #fff;
+    box-shadow: 0 18px 44px rgba(17, 24, 39, 0.10), 0 3px 10px rgba(17, 24, 39, 0.05);
+  }
+
+  /* Right inspector */
+  .iblk { margin-bottom: 24px; }
+  .ih {
+    font-size: 11px; line-height: 16px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--wt-ink-3); margin-bottom: 12px;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .hchip {
+    font-size: 11px; line-height: 16px; font-weight: 700; letter-spacing: 0.06em;
+    color: var(--wt-accent); background: var(--wt-accent-bg); border-radius: 4px; padding: 2px 8px;
+  }
+  .hchip.now { background: var(--wt-accent); color: #fff; }
+  .trow {
+    display: flex; align-items: center; gap: 8px; width: 100%; margin-bottom: 8px; padding: 12px;
+    border: 1px solid var(--wt-border); border-radius: 12px; background: var(--wt-surface);
+    text-align: left; font-family: inherit; cursor: pointer;
+  }
+  .trow:hover { background: var(--wt-accent-bg); }
+  .trow .tl { flex: 1; font-size: 14px; line-height: 20px; color: var(--wt-ink); }
+  .trow .tt { font-size: 11px; line-height: 16px; font-weight: 700; letter-spacing: 0.06em; color: var(--wt-ink-3); }
+  .note { font-size: 13px; line-height: 20px; color: var(--wt-ink-2); }
+  .note em { color: var(--wt-ink-3); font-style: normal; }
+  .helpcard {
+    border: 1px solid var(--wt-border); border-radius: 12px; padding: 12px;
+    font-size: 13px; line-height: 20px; color: var(--wt-ink-2);
+  }
+  .helpcard b { font-weight: 500; color: var(--wt-ink); }
+  .drivers { display: flex; flex-direction: column; gap: 8px; }
+  .dbtn {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%;
+    padding: 10px 12px; border: 1px solid var(--wt-border); border-radius: 10px;
+    background: var(--wt-surface); font-size: 13px; line-height: 20px; color: var(--wt-ink-2);
+    text-align: left; cursor: pointer;
+  }
+  .dbtn:hover { background: var(--wt-accent-bg); }
+  .dbtn .dstate { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: var(--wt-ink-3); }
+  .dbtn.on { border-color: var(--wt-danger); background: var(--wt-danger-bg); color: var(--wt-danger); }
+  .dbtn.on .dstate { color: var(--wt-danger); }
+
+  /* Click targets mode */
+  body.targets [data-live] { outline: 2px dashed var(--wt-accent); outline-offset: 2px; }
+
+  /* ---------------------------------------------------------------
+     Inside the stage: aiRA design system only.
+     --------------------------------------------------------------- */
+  #app {
+    --aira-bg-elevated: #FFFFFF;
+    --aira-bg-canvas: #F6F8FA;
+    --aira-bg-subtle: #F6F8FA;
+    --aira-bg-hover: #EEF1F4;
+    --aira-bg-selected: #EEF0FF;
+    --aira-border-subtle: #EEF1F4;
+    --aira-border-default: #E2E6EB;
+    --aira-border-strong: #C9D0D9;
+    --aira-text-primary: #111827;
+    --aira-text-secondary: #364152;
+    --aira-text-tertiary: #6B7785;
+    --aira-text-link: #3438C9;
+    --indigo-600: #3438C9;
+    --indigo-500: #4A50EF;
+    --indigo-50: #EEF0FF;
+    --avatar-grad: linear-gradient(135deg, #6268FF 0%, #3BA7FF 100%);
+    --green-600: #185C32;
+    --green-50: #E9F7EE;
+    --red-500: #B11E1E;
+    --red-50: #FBEAEA;
+    --red-border: #F3D0D0;
+    --shadow-md: 0 8px 24px rgba(17, 24, 39, 0.12), 0 2px 6px rgba(17, 24, 39, 0.06);
+    --shadow-lg: 0 20px 48px rgba(17, 24, 39, 0.20), 0 4px 12px rgba(17, 24, 39, 0.08);
+
+    width: 1440px; height: 900px; position: relative;
+    background: var(--aira-bg-canvas);
+    color: var(--aira-text-primary);
+    font-size: 14px; line-height: 20px;
+  }
+  #app button { cursor: pointer; }
+
+  /* Dashboard behind the dialog */
+  .dash-top {
+    height: 56px; display: flex; align-items: center; gap: 12px; padding: 0 32px;
+    background: var(--aira-bg-elevated); border-bottom: 1px solid var(--aira-border-default);
+  }
+  .dash-wordmark { font-size: 15px; font-weight: 600; letter-spacing: -0.015em; }
+  .dash-crumb { font-size: 13px; color: var(--aira-text-tertiary); }
+  .dash-body { padding: 32px; }
+  .dash-titlerow { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+  .dash-title { font-size: 22px; line-height: 30px; font-weight: 600; margin: 0 0 2px 0; }
+  .dash-sub { font-size: 13px; line-height: 18px; color: var(--aira-text-tertiary); }
+  .dash-actions { display: flex; align-items: center; gap: 8px; }
+  .dash-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
+  .dash-card {
+    background: var(--aira-bg-elevated); border: 1px solid var(--aira-border-default);
+    border-radius: 8px; padding: 20px;
+  }
+  .dash-metric-label { font-size: 13px; line-height: 18px; color: var(--aira-text-tertiary); margin-bottom: 6px; }
+  .dash-metric-value { font-size: 28px; line-height: 36px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .dash-chart-title { font-size: 16px; line-height: 24px; font-weight: 500; margin: 0 0 4px 0; }
+  .dash-chart-sub { font-size: 13px; line-height: 18px; color: var(--aira-text-tertiary); margin-bottom: 20px; }
+  .dash-bars { display: flex; align-items: flex-end; gap: 24px; height: 200px; padding-left: 8px; }
+  .dash-bar-col { flex: 1 1 0; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; height: 100%; }
+  .dash-bar { background: #9AA4B2; border-radius: 3px 3px 0 0; }
+  .dash-bar.lead { background: var(--indigo-600); }
+  .dash-bar-label { font-size: 12px; line-height: 16px; color: var(--aira-text-tertiary); text-align: center; }
+  .dash-sample { font-size: 12px; line-height: 16px; color: var(--aira-text-tertiary); margin-top: 16px; }
+
+  .scrim {
+    position: absolute; inset: 0; background: rgba(17, 24, 39, 0.45);
+    display: flex; align-items: flex-start; justify-content: center; padding-top: 96px;
+  }
+
+  /* Share dialog */
+  .modal {
+    width: 480px; background: var(--aira-bg-elevated); border-radius: 12px;
+    box-shadow: var(--shadow-lg); border: 1px solid var(--aira-border-default);
+    padding: 24px; position: relative;
+  }
+  .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+  .modal-title { font-size: 18px; line-height: 26px; font-weight: 600; color: var(--aira-text-primary); margin: 0; }
+  .close-btn {
+    width: 32px; height: 32px; border-radius: 8px; border: none; background: transparent;
+    display: flex; align-items: center; justify-content: flex-end;
+    color: var(--aira-text-tertiary); flex-shrink: 0;
+  }
+  .close-btn:hover { color: var(--aira-text-secondary); }
+
+  .search-field { position: relative; margin-bottom: 24px; margin-right: 6px; }
+  .search-field.with-suggestions { margin-bottom: 12px; }
+  .search-input {
+    width: 100%; height: 36px; border: 1px solid var(--aira-border-default); border-radius: 8px;
+    padding: 0 12px 0 36px; font-family: inherit; font-size: 14px; line-height: 20px;
+    color: var(--aira-text-primary); background: var(--aira-bg-elevated); outline: none;
+  }
+  .search-input:focus { border-color: var(--indigo-600); box-shadow: 0 0 0 3px var(--indigo-50); }
+  .search-input::placeholder { color: var(--aira-text-tertiary); }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--aira-text-tertiary); pointer-events: none; display: flex; }
+  .search-results {
+    position: absolute; left: 0; right: 0; top: calc(100% + 4px);
+    background: var(--aira-bg-elevated); border: 1px solid var(--aira-border-default);
+    border-radius: 10px; box-shadow: var(--shadow-md); padding: 4px; z-index: 40;
+    max-height: 280px; overflow-y: auto;
+  }
+  .search-result-row {
+    display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+    border: none; background: transparent; border-radius: 8px; padding: 8px;
+    color: var(--aira-text-primary);
+  }
+  .search-result-row:hover { background: var(--aira-bg-hover); }
+  .search-result-row.taken { opacity: 0.55; cursor: default; }
+  .search-result-row.taken:hover { background: transparent; }
+  .has-access-flag { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; font-size: 12px; line-height: 16px; color: var(--aira-text-tertiary); }
+
+  .skel-row { display: flex; align-items: center; gap: 8px; padding: 8px; }
+  .skel-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--aira-bg-hover); flex-shrink: 0; }
+  .skel-lines { display: flex; flex-direction: column; gap: 6px; flex: 1 1 auto; }
+  .skel-line { height: 8px; border-radius: 4px; background: var(--aira-bg-hover); }
+  .skel-line.short { width: 40%; }
+  .skel-line.long { width: 72%; }
+
+  .no-results { padding: 16px 12px; }
+  .no-results-title { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--aira-text-primary); margin: 0 0 4px 0; }
+  .no-results-desc { font-size: 13px; line-height: 20px; color: var(--aira-text-tertiary); margin: 0; }
+
+  .validation {
+    display: flex; align-items: flex-start; gap: 8px;
+    position: absolute; left: 0; right: 0; top: calc(100% + 4px);
+    background: var(--aira-bg-elevated); border: 1px solid var(--red-border);
+    border-radius: 10px; box-shadow: var(--shadow-md); padding: 12px; z-index: 40;
+  }
+
+  .chip-field {
+    position: relative;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    border: 1px solid var(--aira-border-default); border-radius: 8px;
+    padding: 4px 8px; min-height: 36px; margin-bottom: 24px; margin-right: 6px;
+    background: var(--aira-bg-elevated); cursor: text;
+  }
+  .chip-field:focus-within { border-color: var(--indigo-600); box-shadow: 0 0 0 3px var(--indigo-50); }
+  .chip-input {
+    flex: 1 1 140px; min-width: 140px; height: 28px; border: none; outline: none;
+    background: transparent; font-family: inherit; font-size: 14px; line-height: 20px;
+    color: var(--aira-text-primary); padding: 0;
+  }
+  .chip-input::placeholder { color: var(--aira-text-tertiary); }
+  .chip {
+    display: inline-flex; align-items: center; gap: 8px; background: var(--aira-bg-hover);
+    border-radius: 999px; padding: 4px 4px 4px 8px; font-size: 13px; line-height: 20px;
+    color: var(--aira-text-primary);
+  }
+  .chip-x { display: flex; border: none; background: transparent; padding: 0; color: var(--aira-text-tertiary); }
+  .chip-x:hover { color: var(--aira-text-primary); }
+  .chip-more { font-size: 14px; line-height: 20px; color: var(--aira-text-tertiary); padding-left: 4px; }
+
+  .suggest-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 6px 24px 0; }
+  .suggest-chip {
+    display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px 0 8px;
+    border: 1px solid var(--aira-border-default); border-radius: 999px;
+    background: var(--aira-bg-elevated); font-size: 13px; line-height: 20px; color: var(--aira-text-primary);
+  }
+  .suggest-chip:hover { background: var(--aira-bg-hover); }
+  .suggest-chip .plus { color: var(--aira-text-link); display: flex; }
+
+  .banner {
+    display: flex; align-items: flex-start; gap: 8px; background: var(--red-50);
+    border: 1px solid var(--red-border); border-radius: 8px; padding: 12px;
+    margin-bottom: 20px; margin-right: 6px;
+  }
+  .banner-icon { color: var(--red-500); display: flex; flex-shrink: 0; margin-top: 1px; }
+  .banner-text { display: flex; flex-direction: column; gap: 2px; }
+  .banner-title { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--aira-text-primary); }
+  .banner-desc { font-size: 13px; line-height: 20px; color: var(--aira-text-secondary); }
+
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+  .section-label {
+    font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--aira-text-tertiary); text-transform: uppercase; margin: 0 0 12px 0;
+  }
+  .section-head .section-label { margin: 0; }
+  .count-tag { font-size: 13px; line-height: 20px; color: var(--aira-text-tertiary); }
+
+  .people-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+  .people-list.scrolls {
+    max-height: 180px; overflow-y: auto; overflow-x: hidden;
+    padding: 0 8px; margin: 0 -8px;
+  }
+  .people-list.scrolls::-webkit-scrollbar { width: 6px; }
+  .people-list.scrolls::-webkit-scrollbar-track { background: transparent; }
+  .people-list.scrolls::-webkit-scrollbar-thumb { background: var(--aira-border-strong); border-radius: 999px; }
+  .person-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-radius: 8px; }
+  .person-row.removable:hover { background: var(--aira-bg-hover); padding-left: 8px; padding-right: 8px; margin-left: -8px; margin-right: -8px; }
+  .person-row.removable .row-remove { visibility: hidden; }
+  .person-row.removable:hover .row-remove { visibility: visible; }
+  .avatar {
+    width: 28px; height: 28px; border-radius: 999px; background: var(--avatar-grad); color: #FFFFFF;
+    display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0;
+  }
+  .person-info { flex: 1 1 auto; min-width: 0; }
+  .person-name {
+    font-size: 14px; line-height: 20px; font-weight: 500; color: var(--aira-text-primary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .person-email {
+    font-size: 13px; line-height: 20px; color: var(--aira-text-tertiary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .owner-label { font-size: 14px; line-height: 20px; color: var(--aira-text-tertiary); padding: 8px; flex-shrink: 0; }
+  .row-remove {
+    width: 28px; height: 28px; border: none; background: transparent; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center; color: var(--aira-text-tertiary); flex-shrink: 0;
+  }
+  .row-remove:hover { color: var(--aira-text-primary); background: var(--aira-bg-hover); }
+
+  .list-error {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    border: 1px solid var(--aira-border-default); border-radius: 10px; padding: 24px 16px; margin-bottom: 8px;
+  }
+  .list-error-icon { color: var(--red-500); display: flex; margin-bottom: 4px; }
+  .list-error-title { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--aira-text-primary); }
+  .list-error-desc { font-size: 13px; line-height: 20px; color: var(--aira-text-tertiary); margin-bottom: 12px; }
+
+  .dd { position: relative; flex-shrink: 0; }
+  .dd-trigger {
+    display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 8px; border-radius: 8px;
+    border: 1px solid transparent; background: transparent; font-size: 14px; line-height: 20px;
+    color: var(--aira-text-primary);
+  }
+  .dd-trigger:hover { background: var(--aira-bg-hover); }
+  .dd-trigger.open { background: var(--aira-bg-selected); border-color: var(--aira-border-default); }
+  .dd-trigger .chev { color: var(--aira-text-tertiary); display: flex; }
+  .dd-menu {
+    position: absolute; right: 0; top: calc(100% + 4px); width: 240px; background: var(--aira-bg-elevated);
+    border: 1px solid var(--aira-border-default); border-radius: 10px; box-shadow: var(--shadow-md);
+    padding: 4px; z-index: 40;
+  }
+  .dd-option {
+    display: flex; align-items: flex-start; gap: 8px; width: 100%; text-align: left; border: none;
+    background: transparent; border-radius: 6px; padding: 8px;
+    color: var(--aira-text-primary);
+  }
+  .dd-option:hover { background: var(--aira-bg-hover); }
+  .dd-option .check {
+    width: 16px; height: 20px; color: var(--indigo-600); flex-shrink: 0;
+    display: flex; align-items: center;
+  }
+  .dd-option-text { display: flex; flex-direction: column; }
+  .dd-option-label { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--aira-text-primary); }
+  .dd-option-sub { font-size: 13px; line-height: 20px; color: var(--aira-text-tertiary); }
+  .dd-divider { height: 1px; background: var(--aira-border-default); margin: 4px; }
+
+  .divider { height: 1px; background: var(--aira-border-default); margin: 20px 0; }
+  .general-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .general-icon {
+    width: 36px; height: 36px; border-radius: 999px; background: var(--aira-bg-hover);
+    color: var(--aira-text-secondary); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .general-dd { flex: 1 1 auto; position: relative; }
+  .general-trigger {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; height: 36px;
+    padding: 0 8px 0 12px; border-radius: 8px; border: 1px solid var(--aira-border-default);
+    background: var(--aira-bg-elevated); font-size: 14px; line-height: 20px; font-weight: 500;
+    color: var(--aira-text-primary);
+  }
+  .general-trigger:hover { border-color: var(--aira-border-strong); }
+  .general-trigger.open { border-color: var(--indigo-600); box-shadow: 0 0 0 3px var(--indigo-50); }
+  .general-trigger.static { border-color: transparent; background: transparent; padding: 0 0 0 10px; height: 28px; color: var(--aira-text-secondary); cursor: default; }
+  .general-trigger .chev { color: var(--aira-text-tertiary); display: flex; flex-shrink: 0; }
+  .general-menu {
+    position: absolute; left: 0; right: 0; top: calc(100% + 4px); background: var(--aira-bg-elevated);
+    border: 1px solid var(--aira-border-default); border-radius: 10px; box-shadow: var(--shadow-md);
+    padding: 4px; z-index: 40;
+  }
+  .general-desc { font-size: 13px; line-height: 20px; color: var(--aira-text-tertiary); text-align: left; margin: 8px 0 0 0; }
+  .readonly-note { font-size: 13px; line-height: 20px; color: var(--aira-text-tertiary); margin: 0 0 20px 0; }
+
+  .modal-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: 8px;
+    font-size: 14px; line-height: 20px; font-weight: 500; border: 1px solid transparent;
+  }
+  .btn-secondary { background: var(--aira-bg-elevated); border-color: var(--aira-border-default); color: var(--aira-text-secondary); }
+  .btn-secondary:hover { background: var(--aira-bg-hover); }
+  .btn-secondary.copied { color: var(--green-600); border-color: var(--green-50); background: var(--green-50); }
+  .btn-primary { background: var(--indigo-600); color: #FFFFFF; }
+  .btn-primary:hover { background: var(--indigo-500); }
+  .btn-primary.busy { opacity: 0.75; }
+  .btn-primary.busy .spin { animation: spin 900ms linear infinite; display: flex; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .btn-primary.busy .spin { animation: none; } }
+
+  .toast {
+    position: absolute; left: 50%; transform: translateX(-50%); bottom: 40px;
+    background: #1F2937; color: #FFFFFF; font-size: 13px; line-height: 18px;
+    border-radius: 8px; padding: 10px 14px; box-shadow: var(--shadow-md);
+  }
+</style>
+
+<div class="wt">
+  <div class="wtop">
+    <span class="mark">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="wtgrad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#6268FF"/><stop offset="1" stop-color="#3BA7FF"/>
+          </linearGradient>
+        </defs>
+        <path d="M12 2.5 13.7 8.3 19.5 10 13.7 11.7 12 17.5 10.3 11.7 4.5 10 10.3 8.3Z" fill="url(#wtgrad)"/>
+        <path d="M18 15.5 18.8 18.2 21.5 19 18.8 19.8 18 22.5 17.2 19.8 14.5 19 17.2 18.2Z" fill="url(#wtgrad)"/>
+      </svg>
+    </span>
+    <span class="wname">Dashboard sharing walkthrough</span>
+    <span class="sid" id="curId">A1</span>
+    <span class="sname" id="curName">Dashboard</span>
+    <span class="sep"></span>
+    <button class="wbtn" id="btnTargets" type="button">Click targets</button>
+    <button class="wbtn" id="btnBack" type="button">Back</button>
+    <button class="wbtn" id="btnRestart" type="button">Restart</button>
+  </div>
+  <div class="wbody">
+    <div class="rail" id="rail"></div>
+    <div class="stage" id="stage">
+      <div class="holder" id="holder">
+        <div class="frame" id="frame"><div id="app"></div></div>
+      </div>
+    </div>
+    <div class="insp" id="insp"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var W = 1440, H = 900;
+  var stage = document.getElementById('stage');
+  var holder = document.getElementById('holder');
+  var frame = document.getElementById('frame');
+  var app = document.getElementById('app');
+  var rail = document.getElementById('rail');
+  var insp = document.getElementById('insp');
+
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function initials(name) {
+    var parts = String(name).trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  var ICON = {
+    close: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+    search: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>',
+    chev: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
+    check: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+    checkBig: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+    lock: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+    org: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="10" height="18"/><rect x="14" y="9" width="6" height="12"/><path d="M7.5 7h1M7.5 10.5h1M7.5 14h1M11 7h1M11 10.5h1M11 14h1M16.5 12.5h1M16.5 16h1"/></svg>',
+    link: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 1 1 0 10h-2M8 12h8"/></svg>',
+    error: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>',
+    smallX: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+    rowX: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+    loader: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/></svg>',
+    plus: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'
+  };
+
+  var ORG = 'Bukl Enterprises';
+  var ORG_DOMAIN = 'capillarytech.com';
+
+  // The organization directory the picker searches.
+  var DIRECTORY = [
+    { id: 'punya', name: 'Punya Shetty', email: 'punya.shetty@capillarytech.com' },
+    { id: 'rakshit', name: 'Rakshit Naik', email: 'rakshit.naik@capillarytech.com' },
+    { id: 'tara', name: 'Tara Menon', email: 'tara.menon@capillarytech.com' },
+    { id: 'sara', name: 'Sara Iyer', email: 'sara.iyer@capillarytech.com' },
+    { id: 'saran', name: 'Saran Kumar', email: 'saran.kumar@capillarytech.com' },
+    { id: 'mehul', name: 'Mehul Goel', email: 'mehul.goel@capillarytech.com' },
+    { id: 'pavan', name: 'Pavan J', email: 'pavan.j@capillarytech.com' },
+    { id: 'dev', name: 'Dev Kumar', email: 'dev.kumar@capillarytech.com' },
+    { id: 'sana', name: 'Sana Iqbal', email: 'sana.iqbal@capillarytech.com' }
+  ];
+
+  function person(id, name, email, role) {
+    return { id: id, name: name, email: email, role: role };
+  }
+  function baseline() {
+    return [
+      person('owner', 'Vaibhav Bhat', 'vaibhav.bhat@capillarytech.com', 'owner'),
+      person('test12', 'test_user12', 'test_user12@gmail.com', 'editor')
+    ];
+  }
+
+  // ---------------------------------------------------------------
+  // One state object.
+  // ---------------------------------------------------------------
+  var S = {
+    open: true,
+    readonly: false,
+    people: baseline(),
+    peopleError: false,
+    draft: '',
+    caret: 0,
+    inputFocused: false,
+    results: 'closed',          // closed | loading | list | none | invalid
+    suggestions: [],
+    chips: [],
+    roleMenuFor: null,
+    accessMenuOpen: false,
+    access: 'restricted',       // restricted | org
+    orgRole: 'viewer',          // the role everyone in the org gets
+    orgRoleMenuOpen: false,
+    busy: false,
+    banner: null,
+    toast: null,
+    copied: false,
+    listScrollTop: 0,
+    me: 'owner',
+    failNext: false,
+    partialNext: false
+  };
+
+  var timers = { load: null, share: null, copy: null, toast: null };
+  function clearTimers() {
+    Object.keys(timers).forEach(function (k) {
+      if (timers[k]) { clearTimeout(timers[k]); timers[k] = null; }
+    });
+  }
+
+  // Derived &mdash; computed, never stored.
+  function hasAccess(id) {
+    return S.people.some(function (p) { return p.id === id; });
+  }
+  function isChosen(id) {
+    return S.chips.some(function (c) { return c.id === id; });
+  }
+  function matches() {
+    var q = S.draft.trim().toLowerCase();
+    if (!q) return [];
+    return DIRECTORY.filter(function (p) {
+      return p.name.toLowerCase().indexOf(q) !== -1 || p.email.toLowerCase().indexOf(q) !== -1;
+    }).filter(function (p) { return !isChosen(p.id); });
+  }
+  function looksExternal() {
+    var q = S.draft.trim().toLowerCase();
+    return q.indexOf('@') !== -1 && q.indexOf('@' + ORG_DOMAIN) === -1;
+  }
+  function accessLabel() { return S.access === 'restricted' ? 'Restricted' : ORG; }
+  function orgOverridden() {
+    if (S.access !== 'org') return false;
+    return S.people.some(function (p) { return p.role !== 'owner' && p.role !== S.orgRole; });
+  }
+  function accessDesc() {
+    if (S.access === 'restricted') {
+      return 'Only the owner and people with access can open the dashboard.';
+    }
+    return 'Anyone in ' + ORG + ' with dashboard access can ' +
+      (S.orgRole === 'editor' ? 'edit' : 'view') + '.' +
+      (orgOverridden() ? ' People listed above keep their own role, which takes priority.' : '');
+  }
+  function orgRoleLabel() { return S.orgRole === 'editor' ? 'Editor' : 'Viewer'; }
+
+  // ---------------------------------------------------------------
+  // Render &mdash; the app is rebuilt from state on every change.
+  // ---------------------------------------------------------------
+  function renderDashboard() {
+    var bars = [
+      { label: 'Store 1', h: 58 },
+      { label: 'Store 2', h: 71 },
+      { label: 'Store 3', h: 44 },
+      { label: 'Store 4', h: 96, lead: true },
+      { label: 'Store 5', h: 63 },
+      { label: 'Store 6', h: 39 }
+    ];
+    return '' +
+      '<div class="dash-top">' +
+        '<span class="dash-wordmark">aiRA</span>' +
+        '<span class="dash-crumb">Loyalty+ &middot; Dashboards</span>' +
+      '</div>' +
+      '<div class="dash-body">' +
+        '<div class="dash-titlerow">' +
+          '<div>' +
+            '<h1 class="dash-title">July sales</h1>' +
+            '<div class="dash-sub">Built by aiRA &middot; last run 6 Sep, 09:12</div>' +
+          '</div>' +
+          '<div class="dash-actions">' +
+            '<button class="btn btn-secondary" type="button">Export</button>' +
+            '<button class="btn btn-primary" type="button" data-act="open" data-live="Share">Share</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="dash-grid">' +
+          '<div class="dash-card"><div class="dash-metric-label">Net sales</div><div class="dash-metric-value">18.4L</div></div>' +
+          '<div class="dash-card"><div class="dash-metric-label">Transactions</div><div class="dash-metric-value">7,204</div></div>' +
+          '<div class="dash-card"><div class="dash-metric-label">Average bill</div><div class="dash-metric-value">2,554</div></div>' +
+        '</div>' +
+        '<div class="dash-card">' +
+          '<h2 class="dash-chart-title">Store 4 leads sales this month</h2>' +
+          '<div class="dash-chart-sub">Net sales by store, July</div>' +
+          '<div class="dash-bars">' +
+            bars.map(function (b) {
+              return '<div class="dash-bar-col">' +
+                '<div class="dash-bar' + (b.lead ? ' lead' : '') + '" style="height:' + b.h + '%"></div>' +
+                '<div class="dash-bar-label">' + b.label + '</div>' +
+              '</div>';
+            }).join('') +
+          '</div>' +
+          '<div class="dash-sample">Sample data &mdash; the dashboard behind the dialog is context only.</div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function renderResults() {
+    if (S.results === 'loading') {
+      var rows = '';
+      for (var i = 0; i < 4; i++) {
+        rows += '<div class="skel-row"><div class="skel-avatar"></div>' +
+          '<div class="skel-lines"><div class="skel-line short"></div><div class="skel-line long"></div></div></div>';
+      }
+      return '<div class="search-results" aria-busy="true">' + rows + '</div>';
+    }
+    if (S.results === 'none') {
+      return '<div class="search-results">' +
+        '<div class="no-results">' +
+          '<p class="no-results-title">No matches for &ldquo;' + esc(S.draft.trim()) + '&rdquo;</p>' +
+          '<p class="no-results-desc">Check the spelling, or search by full email address.</p>' +
+        '</div></div>';
+    }
+    if (S.results === 'invalid') {
+      return '<div class="validation">' +
+        '<span class="banner-icon">' + ICON.error + '</span>' +
+        '<span class="banner-text">' +
+          '<span class="banner-title">Can&#39;t share outside ' + ORG + '</span>' +
+          '<span class="banner-desc">' + esc(S.draft.trim()) + ' isn&#39;t in this organization. Share with anyone in ' +
+            ORG + ', or ask your admin to add them.</span>' +
+        '</span></div>';
+    }
+    if (S.results !== 'list') return '';
+
+    var found = matches();
+    if (!found.length) return '';
+    return '<div class="search-results" role="listbox">' + found.map(function (p) {
+      var taken = hasAccess(p.id);
+      return '<button class="search-result-row' + (taken ? ' taken' : '') + '" role="option" type="button"' +
+        (taken ? ' aria-disabled="true"' : ' data-act="pick" data-id="' + p.id + '" data-live="Pick ' + esc(p.name) + '"') + '>' +
+        '<div class="avatar">' + initials(p.name) + '</div>' +
+        '<div class="person-info"><div class="person-name">' + esc(p.name) + '</div>' +
+        '<div class="person-email">' + esc(p.email) + '</div></div>' +
+        (taken ? '<span class="has-access-flag">' + ICON.check + '<span>Has access</span></span>' : '') +
+      '</button>';
+    }).join('') + '</div>';
+  }
+
+  function renderInputArea() {
+    if (S.readonly) return '';
+
+    if (S.chips.length) {
+      return '<div class="chip-field">' + S.chips.map(function (c) {
+        return '<span class="chip">' +
+          '<span>' + esc(c.name) + '</span>' +
+          '<button class="chip-x" type="button" aria-label="Remove ' + esc(c.name) + '" ' +
+            'data-act="unchip" data-id="' + c.id + '" data-live="Remove ' + esc(c.name) + '">' + ICON.smallX + '</button>' +
+        '</span>';
+      }).join('') +
+      '<input class="chip-input" id="addField" type="text" autocomplete="off" ' +
+        'placeholder="Add another person" value="' + esc(S.draft) + '" data-live="Add another person">' +
+      renderResults() + '</div>';
+    }
+
+    var withSug = S.suggestions.length ? ' with-suggestions' : '';
+    return '<div class="search-field' + withSug + '">' +
+      '<span class="search-icon">' + ICON.search + '</span>' +
+      '<input class="search-input" id="addField" type="text" autocomplete="off" ' +
+        'placeholder="Add people by name or email" value="' + esc(S.draft) + '" data-live="Add people">' +
+      renderResults() +
+    '</div>' + renderSuggestions();
+  }
+
+  function renderSuggestions() {
+    if (!S.suggestions.length) return '';
+    // Capped at three &mdash; beyond that they compete with the list below.
+    return '<div class="suggest-row">' + S.suggestions.slice(0, 3).map(function (id) {
+      var p = DIRECTORY.filter(function (d) { return d.id === id; })[0];
+      if (!p || hasAccess(p.id) || isChosen(p.id)) return '';
+      return '<button class="suggest-chip" type="button" data-act="pick" data-id="' + p.id + '" ' +
+        'data-live="Add ' + esc(p.name) + '"><span class="plus">' + ICON.plus + '</span>' +
+        '<span>' + esc(p.name) + '</span></button>';
+    }).join('') + '</div>';
+  }
+
+  function roleMenu(p) {
+    if (S.roleMenuFor !== p.id) return '';
+    var isEditor = p.role === 'editor';
+    return '<div class="dd-menu" role="listbox">' +
+      '<button class="dd-option" role="option" type="button" data-act="role" data-id="' + p.id + '" ' +
+        'data-role="editor" data-live="Set Editor">' +
+        '<span class="check">' + (isEditor ? ICON.check : '') + '</span>' +
+        '<span class="dd-option-text"><span class="dd-option-label">Editor</span>' +
+        '<span class="dd-option-sub">Can edit the dashboard</span></span></button>' +
+      '<button class="dd-option" role="option" type="button" data-act="role" data-id="' + p.id + '" ' +
+        'data-role="viewer" data-live="Set Viewer">' +
+        '<span class="check">' + (!isEditor ? ICON.check : '') + '</span>' +
+        '<span class="dd-option-text"><span class="dd-option-label">Viewer</span>' +
+        '<span class="dd-option-sub">Can view the dashboard</span></span></button>' +
+      '<div class="dd-divider"></div>' +
+      '<button class="dd-option" role="option" type="button" data-act="revoke" data-id="' + p.id + '" ' +
+        'data-live="Remove access"><span class="check"></span>' +
+        '<span class="dd-option-text"><span class="dd-option-label">Remove access</span></span></button>' +
+    '</div>';
+  }
+
+  function orgRoleMenu() {
+    var isEditor = S.orgRole === 'editor';
+    return '<div class="dd-menu" role="listbox">' +
+      '<button class="dd-option" role="option" type="button" data-act="orgrole" data-role="editor" ' +
+        'data-live="Everyone can edit">' +
+        '<span class="check">' + (isEditor ? ICON.check : '') + '</span>' +
+        '<span class="dd-option-text"><span class="dd-option-label">Editor</span>' +
+        '<span class="dd-option-sub">Can edit the dashboard</span></span></button>' +
+      '<button class="dd-option" role="option" type="button" data-act="orgrole" data-role="viewer" ' +
+        'data-live="Everyone can view">' +
+        '<span class="check">' + (!isEditor ? ICON.check : '') + '</span>' +
+        '<span class="dd-option-text"><span class="dd-option-label">Viewer</span>' +
+        '<span class="dd-option-sub">Can view the dashboard</span></span></button>' +
+    '</div>';
+  }
+
+  function renderPeople() {
+    if (S.peopleError) {
+      return '<div class="list-error">' +
+        '<span class="list-error-icon">' + ICON.error + '</span>' +
+        '<span class="list-error-title">Couldn&#39;t load people</span>' +
+        '<span class="list-error-desc">Retry, or contact support.</span>' +
+        '<button class="btn btn-secondary" type="button" data-act="reload" data-live="Retry loading people">Retry</button>' +
+      '</div>';
+    }
+
+    var many = S.people.length >= 6;
+    var head = many
+      ? '<div class="section-head"><p class="section-label">People with access</p>' +
+        '<span class="count-tag">' + S.people.length + ' people</span></div>'
+      : '<p class="section-label">People with access</p>';
+
+    var rows = S.people.map(function (p) {
+      // "(You)" marks the current user inline after the name, in the same text
+      // style — never as a separate trailing label.
+      var youMark = p.id === S.me ? ' (You)' : '';
+      var trailing;
+      if (p.role === 'owner') {
+        trailing = '<span class="owner-label">Owner</span>';
+      } else if (S.readonly) {
+        trailing = '<span class="owner-label">' + (p.role === 'editor' ? 'Editor' : 'Viewer') + '</span>';
+      } else {
+        trailing = '<div class="dd">' +
+          '<button class="dd-trigger' + (S.roleMenuFor === p.id ? ' open' : '') + '" type="button" ' +
+            'aria-haspopup="listbox" aria-expanded="' + (S.roleMenuFor === p.id) + '" ' +
+            'data-act="rolemenu" data-id="' + p.id + '" data-live="Role for ' + esc(p.name) + '">' +
+            '<span>' + (p.role === 'editor' ? 'Editor' : 'Viewer') + '</span>' +
+            '<span class="chev">' + ICON.chev + '</span></button>' +
+          roleMenu(p) + '</div>';
+      }
+      var removable = many && p.role !== 'owner' && !S.readonly;
+      if (removable) {
+        trailing = '<button class="row-remove" type="button" aria-label="Remove ' + esc(p.name) + '" ' +
+          'data-act="revoke" data-id="' + p.id + '" data-live="Remove ' + esc(p.name) + '">' + ICON.rowX + '</button>';
+      }
+      return '<div class="person-row' + (removable ? ' removable' : '') + '">' +
+        '<div class="avatar">' + initials(p.name) + '</div>' +
+        '<div class="person-info"><div class="person-name">' + esc(p.name) + youMark + '</div>' +
+        '<div class="person-email">' + esc(p.email) + '</div></div>' +
+        trailing + '</div>';
+    }).join('');
+
+    return head + '<div class="people-list' + (many ? ' scrolls' : '') + '" id="peopleList">' + rows + '</div>';
+  }
+
+  function renderAccess() {
+    var icon = S.access === 'restricted' ? ICON.lock : ICON.org;
+    var control = S.readonly
+      ? '<div class="general-trigger static"><span>' + accessLabel() + '</span></div>'
+      : '<button class="general-trigger' + (S.accessMenuOpen ? ' open' : '') + '" type="button" ' +
+          'aria-haspopup="listbox" aria-expanded="' + S.accessMenuOpen + '" ' +
+          'data-act="accessmenu" data-live="General access">' +
+          '<span>' + accessLabel() + '</span><span class="chev">' + ICON.chev + '</span></button>' +
+        (S.accessMenuOpen ? accessMenu() : '');
+
+    // The role sits beside the scope, and only when a scope grants access to
+    // people who were never listed individually. Restricted grants nobody, so
+    // it carries no role.
+    var roleControl = '';
+    if (S.access === 'org') {
+      roleControl = S.readonly
+        ? '<span class="owner-label">' + orgRoleLabel() + '</span>'
+        : '<div class="dd">' +
+            '<button class="dd-trigger' + (S.orgRoleMenuOpen ? ' open' : '') + '" type="button" ' +
+              'aria-haspopup="listbox" aria-expanded="' + S.orgRoleMenuOpen + '" ' +
+              'data-act="orgrolemenu" data-live="Role for everyone in ' + ORG + '">' +
+              '<span>' + orgRoleLabel() + '</span><span class="chev">' + ICON.chev + '</span>' +
+            '</button>' + (S.orgRoleMenuOpen ? orgRoleMenu() : '') +
+          '</div>';
+    }
+
+    return '<p class="section-label">General access</p>' +
+      '<div class="general-row">' +
+        '<div class="general-icon">' + icon + '</div>' +
+        '<div class="general-dd dd">' + control + '</div>' +
+        roleControl +
+      '</div>' +
+      '<p class="general-desc">' + accessDesc() + '</p>';
+  }
+
+  function accessMenu() {
+    var restricted = S.access === 'restricted';
+    return '<div class="general-menu" role="listbox">' +
+      '<button class="dd-option" role="option" type="button" data-act="access" data-value="restricted" ' +
+        'data-live="Set Restricted"><span class="check">' + (restricted ? ICON.check : '') + '</span>' +
+        '<span class="dd-option-text"><span class="dd-option-label">Restricted</span>' +
+        '<span class="dd-option-sub">Only the owner and people with access can open the dashboard</span></span></button>' +
+      '<button class="dd-option" role="option" type="button" data-act="access" data-value="org" ' +
+        'data-live="Set ' + ORG + '"><span class="check">' + (!restricted ? ICON.check : '') + '</span>' +
+        '<span class="dd-option-text"><span class="dd-option-label">' + ORG + '</span>' +
+        '<span class="dd-option-sub">Anyone in ' + ORG + ' with dashboard access can view</span></span></button>' +
+    '</div>';
+  }
+
+  function renderFooter() {
+    var copy = '<button class="btn btn-secondary' + (S.copied ? ' copied' : '') + '" type="button" ' +
+      'data-act="copy" data-live="Copy link">' + (S.copied ? ICON.checkBig : ICON.link) +
+      '<span>' + (S.copied ? 'Link copied' : 'Copy link') + '</span></button>';
+
+    var primary;
+    if (S.busy) {
+      primary = '<button class="btn btn-primary busy" type="button" aria-busy="true">' +
+        '<span class="spin">' + ICON.loader + '</span><span>Sharing&hellip;</span></button>';
+    } else if (S.readonly) {
+      primary = '<button class="btn btn-primary" type="button" data-act="close" data-live="Close">Close</button>';
+    } else if (S.banner) {
+      primary = '<button class="btn btn-primary" type="button" data-act="share" data-live="Retry">Retry</button>';
+    } else if (S.chips.length) {
+      primary = '<button class="btn btn-primary" type="button" data-act="share" data-live="Share">Share</button>';
+    } else {
+      primary = '<button class="btn btn-primary" type="button" data-act="close" data-live="Done">Done</button>';
+    }
+    return '<div class="modal-footer">' + copy + primary + '</div>';
+  }
+
+  function renderDialog() {
+    var banner = S.banner
+      ? '<div class="banner"><span class="banner-icon">' + ICON.error + '</span>' +
+        '<span class="banner-text"><span class="banner-title">' + S.banner.title + '</span>' +
+        '<span class="banner-desc">' + S.banner.desc + '</span></span></div>'
+      : '';
+
+    return '<div class="scrim">' +
+      '<div class="modal" role="dialog" aria-modal="true" aria-label="Share July sales">' +
+        '<div class="modal-header">' +
+          '<h2 class="modal-title">Share &ldquo;July sales&rdquo;</h2>' +
+          '<button class="close-btn" type="button" aria-label="Close" data-act="close" data-live="Close">' +
+            ICON.close + '</button>' +
+        '</div>' +
+        banner +
+        renderInputArea() +
+        (S.readonly ? '<p class="readonly-note">You can view who has access. Only the owner can change sharing settings.</p>' : '') +
+        renderPeople() +
+        '<div class="divider"></div>' +
+        renderAccess() +
+        renderFooter() +
+      '</div>' +
+      (S.toast ? '<div class="toast" role="status">' + esc(S.toast) + '</div>' : '') +
+    '</div>';
+  }
+
+  function render() {
+    app.innerHTML = renderDashboard() + (S.open ? renderDialog() : '');
+    restoreScroll();
+    restoreFocus();
+  }
+
+  function restoreScroll() {
+    var list = document.getElementById('peopleList');
+    if (!list) return;
+    S.listScrollTop = Math.max(0, Math.min(S.listScrollTop, list.scrollHeight - list.clientHeight));
+    list.scrollTop = S.listScrollTop;
+    list.addEventListener('scroll', function () { S.listScrollTop = list.scrollTop; });
+  }
+
+  function restoreFocus() {
+    if (!S.inputFocused) return;
+    var f = document.getElementById('addField');
+    if (!f) { S.inputFocused = false; return; }
+    f.focus();
+    var pos = Math.min(S.caret, f.value.length);
+    try { f.setSelectionRange(pos, pos); } catch (e) { /* not supported on this input type */ }
+  }
+
+  // ---------------------------------------------------------------
+  // Interactions. Every one ends in a single render, via act().
+  // ---------------------------------------------------------------
+  function openMenusClosed() {
+    S.roleMenuFor = null;
+    S.accessMenuOpen = false;
+    S.orgRoleMenuOpen = false;
+  }
+
+  function addChip(id) {
+    var p = DIRECTORY.filter(function (d) { return d.id === id; })[0];
+    if (!p || isChosen(id) || hasAccess(id)) return;
+    S.chips.push({ id: p.id, name: p.name, email: p.email });
+    S.draft = '';
+    S.caret = 0;
+    S.results = 'closed';
+    // Keep the caret in the field: the next thing you do is usually add
+    // another person, and focus must never fall back to the body.
+    S.inputFocused = true;
+  }
+
+  function runShare() {
+    if (!S.chips.length) return;
+    S.banner = null;
+    S.busy = true;
+    goStep('B7', true);
+    timers.share = setTimeout(function () {
+      timers.share = null;
+      S.busy = false;
+
+      if (S.failNext) {
+        S.failNext = false;
+        S.banner = {
+          title: 'Couldn&#39;t share this dashboard',
+          desc: 'Retry, or contact support.'
+        };
+        goStep('D2', true);
+        return;
+      }
+
+      if (S.partialNext && S.chips.length) {
+        S.partialNext = false;
+        var failing = S.chips[S.chips.length - 1];
+        var landed = S.chips.slice(0, -1);
+        landed.forEach(function (c) { S.people.push(person(c.id, c.name, c.email, 'viewer')); });
+        S.chips = [failing];
+        S.banner = {
+          title: 'Shared with ' + landed.length + ' of ' + (landed.length + 1) + ' people',
+          desc: esc(failing.name) + '&#39;s account is deactivated. Remove them, or ask your admin to reactivate it.'
+        };
+        goStep('D3', true);
+        return;
+      }
+
+      var n = S.chips.length;
+      // A newly shared person always lands as Viewer &mdash; roles are never
+      // inherited from another dashboard.
+      S.chips.forEach(function (c) { S.people.push(person(c.id, c.name, c.email, 'viewer')); });
+      S.chips = [];
+      S.toast = 'Shared with ' + n + (n === 1 ? ' person' : ' people');
+      timers.toast = setTimeout(function () { timers.toast = null; S.toast = null; render(); }, 4000);
+      goStep('B8', true);
+    }, 1300);
+  }
+
+  function typed(value, caret) {
+    S.draft = value;
+    S.caret = caret;
+    S.inputFocused = true;
+    if (timers.load) { clearTimeout(timers.load); timers.load = null; }
+
+    if (!S.draft.trim()) {
+      S.results = 'closed';
+      render();
+      return;
+    }
+    if (looksExternal()) {
+      S.results = 'invalid';
+      goStep('D4', true);
+      return;
+    }
+    S.results = 'loading';
+    goStep('B2', true);
+    timers.load = setTimeout(function () {
+      timers.load = null;
+      var found = matches();
+      S.results = found.length ? 'list' : 'none';
+      if (!found.length) {
+        goStep('B5', true);
+      } else {
+        goStep(found.some(function (p) { return hasAccess(p.id); }) ? 'B4' : 'B3', true);
+      }
+    }, 420);
+  }
+
+  function act(el) {
+    var a = el.getAttribute('data-act');
+    var id = el.getAttribute('data-id');
+
+    if (a === 'open') { S.open = true; goStep('A2', true); return; }
+    if (a === 'close') { S.open = false; openMenusClosed(); goStep('A1', true); return; }
+
+    if (a === 'pick') { addChip(id); goStep('B6', true); return; }
+    if (a === 'unchip') {
+      S.chips = S.chips.filter(function (c) { return c.id !== id; });
+      goStep(S.chips.length ? 'B6' : 'A2', true);
+      return;
+    }
+    if (a === 'share') { runShare(); return; }
+
+    if (a === 'rolemenu') {
+      S.roleMenuFor = S.roleMenuFor === id ? null : id;
+      S.accessMenuOpen = false;
+      goStep(S.roleMenuFor ? 'C1' : 'A2', true);
+      return;
+    }
+    if (a === 'role') {
+      var role = el.getAttribute('data-role');
+      S.people.forEach(function (p) { if (p.id === id) p.role = role; });
+      S.roleMenuFor = null;
+      goStep('A2', true);
+      return;
+    }
+    if (a === 'revoke') {
+      S.people = S.people.filter(function (p) { return p.id !== id; });
+      S.roleMenuFor = null;
+      goStep('C2', true);
+      return;
+    }
+
+    if (a === 'accessmenu') {
+      S.accessMenuOpen = !S.accessMenuOpen;
+      S.roleMenuFor = null;
+      S.orgRoleMenuOpen = false;
+      goStep(S.accessMenuOpen ? 'C3' : 'A2', true);
+      return;
+    }
+    if (a === 'orgrolemenu') {
+      S.orgRoleMenuOpen = !S.orgRoleMenuOpen;
+      S.roleMenuFor = null;
+      S.accessMenuOpen = false;
+      goStep(S.orgRoleMenuOpen ? 'C6' : 'C4', true);
+      return;
+    }
+    if (a === 'orgrole') {
+      S.orgRole = el.getAttribute('data-role');
+      S.orgRoleMenuOpen = false;
+      goStep('C4', true);
+      return;
+    }
+    if (a === 'access') {
+      S.access = el.getAttribute('data-value');
+      S.accessMenuOpen = false;
+      goStep(S.access === 'org' ? 'C4' : 'A2', true);
+      return;
+    }
+
+    if (a === 'copy') {
+      S.copied = true;
+      if (timers.copy) clearTimeout(timers.copy);
+      timers.copy = setTimeout(function () { timers.copy = null; S.copied = false; render(); }, 1600);
+      goStep('C5', true);
+      return;
+    }
+
+    if (a === 'reload') { S.peopleError = false; S.people = baseline(); goStep('A2', true); return; }
+  }
+
+  app.addEventListener('click', function (e) {
+    var el = e.target.closest('[data-act]');
+    if (el) { act(el); return; }
+    var field = e.target.closest('.chip-field, .search-field');
+    if (field) {
+      var input = field.querySelector('#addField');
+      if (input) { S.inputFocused = true; input.focus(); return; }
+    }
+    // Clicking outside an open menu closes it, as the real dropdown does.
+    if ((S.roleMenuFor || S.accessMenuOpen) && !e.target.closest('.dd-menu, .general-menu')) {
+      openMenusClosed();
+      render();
+    }
+  });
+  app.addEventListener('input', function (e) {
+    if (e.target.id !== 'addField') return;
+    typed(e.target.value, e.target.selectionStart || e.target.value.length);
+  });
+  app.addEventListener('focusin', function (e) {
+    if (e.target.id === 'addField') S.inputFocused = true;
+  });
+
+  // ---------------------------------------------------------------
+  // Steps. Each apply() fully specifies the state.
+  // ---------------------------------------------------------------
+  function reset() {
+    clearTimers();
+    S.open = true;
+    S.readonly = false;
+    S.people = baseline();
+    S.peopleError = false;
+    S.draft = '';
+    S.caret = 0;
+    S.inputFocused = false;
+    S.results = 'closed';
+    S.suggestions = [];
+    S.chips = [];
+    S.roleMenuFor = null;
+    S.accessMenuOpen = false;
+    S.access = 'restricted';
+    S.orgRole = 'viewer';
+    S.orgRoleMenuOpen = false;
+    S.busy = false;
+    S.banner = null;
+    S.toast = null;
+    S.copied = false;
+    S.listScrollTop = 0;
+    S.me = 'owner';
+    // Drivers are deliberately NOT reset &mdash; they are the reviewer's setting.
+  }
+
+  var SECTIONS = [
+    { key: 'A', title: 'A &middot; First run', desc: 'Opening the dialog on a dashboard aiRA built.' },
+    { key: 'B', title: 'B &middot; Adding people', desc: 'Finding someone and giving them access.' },
+    { key: 'C', title: 'C &middot; Changing access', desc: 'Roles, revoking, and who can open the link.' },
+    { key: 'D', title: 'D &middot; When it fails', desc: 'The four ways this goes wrong in the real product.' },
+    { key: 'E', title: 'E &middot; Other viewers', desc: 'What a non-owner sees, and what scale does.' }
+  ];
+
+  var STEPS = [
+    {
+      id: 'A1', sec: 'A', name: 'Dashboard',
+      apply: function () { reset(); S.open = false; },
+      targets: [{ label: 'Click Share in the header', to: 'A2' }],
+      note: 'The entry point. Share sits beside Export in the dashboard header &mdash; the only way into this dialog. ' +
+            'Dashboard figures are sample data.'
+    },
+    {
+      id: 'A2', sec: 'A', name: 'Share dialog',
+      apply: function () { reset(); },
+      targets: [
+        { label: 'Type a name in the field', to: 'B2' },
+        { label: 'Open the role dropdown', to: 'C1' },
+        { label: 'Open general access', to: 'C3' },
+        { label: 'Click Copy link', to: 'C5' }
+      ],
+      note: 'Canvas state 1. Restricted by default, one editor already on. Role and access changes apply as you make ' +
+            'them, so the primary reads Done, not Save.'
+    },
+    {
+      id: 'A3', sec: 'A', name: 'Default, not shared',
+      apply: function () { reset(); S.people = [baseline()[0]]; },
+      targets: [
+        { label: 'Type a name in the field', to: 'B2' },
+        { label: 'Open general access', to: 'C3' }
+      ],
+      note: 'Canvas state 7. A dashboard aiRA just built, shared with nobody. No empty-state illustration &mdash; the ' +
+            'owner row plus the field is the whole story.'
+    },
+
+    {
+      id: 'B1', sec: 'B', name: 'Suggestions',
+      apply: function () { reset(); S.suggestions = ['punya', 'rakshit', 'tara']; },
+      targets: [
+        { label: 'Click a suggested person', to: 'B6' },
+        { label: 'Type instead', to: 'B2' }
+      ],
+      note: 'Canvas state 21. Suggestions come from people you shared OTHER dashboards with &mdash; never this one &mdash; and ' +
+            'anyone who already has access is excluded. Capped at three so they do not compete with the list below.'
+    },
+    {
+      id: 'B2', sec: 'B', name: 'Looking people up',
+      apply: function () { reset(); S.draft = 'sa'; S.results = 'loading'; S.inputFocused = true; S.caret = 2; },
+      targets: [{ label: 'Wait - results land', to: 'B3' }],
+      note: 'Canvas state 10. Skeleton rows, not a spinner: the row shape is known before the names are. Seeded here ' +
+            'rather than timed, so the step holds still while you look at it.'
+    },
+    {
+      id: 'B3', sec: 'B', name: 'Results',
+      apply: function () { reset(); S.draft = 'sa'; S.results = 'list'; S.inputFocused = true; S.caret = 2; },
+      targets: [
+        { label: 'Click Sara Iyer', to: 'B6' },
+        { label: 'Keep typing to narrow it', to: 'B3' }
+      ],
+      note: 'Canvas state 6. Live search over the org directory &mdash; type in the field and this filters for real. ' +
+            'Matching is on name and email.'
+    },
+    {
+      id: 'B4', sec: 'B', name: 'Already has access',
+      apply: function () {
+        reset();
+        // Mehul is already on this dashboard, so he shows dimmed in results.
+        S.people.push(person('mehul', 'Mehul Goel', 'mehul.goel@capillarytech.com', 'viewer'));
+        S.draft = 'me';
+        S.results = 'list';
+        S.inputFocused = true;
+        S.caret = 2;
+      },
+      targets: [{ label: 'Clear the field and start again', to: 'A2' }],
+      note: 'Canvas state 12. Someone already on the dashboard stays visible but dimmed and marked Has access, ' +
+            'rather than vanishing from results &mdash; disappearing reads as a broken search. The row is inert.'
+    },
+    {
+      id: 'B5', sec: 'B', name: 'No matches',
+      apply: function () { reset(); S.draft = 'zubin'; S.results = 'none'; S.inputFocused = true; S.caret = 5; },
+      targets: [{ label: 'Type a name that exists', to: 'B3' }],
+      note: 'Canvas state 11. Names the query back and gives the one useful next move &mdash; search by full email &mdash; ' +
+            'rather than an illustration.'
+    },
+    {
+      id: 'B6', sec: 'B', name: 'Recipients chosen',
+      apply: function () {
+        reset();
+        S.chips = [
+          { id: 'sara', name: 'Sara Iyer', email: 'sara.iyer@capillarytech.com' },
+          { id: 'mehul', name: 'Mehul Goel', email: 'mehul.goel@capillarytech.com' }
+        ];
+      },
+      targets: [
+        { label: 'Click Share', to: 'B7' },
+        { label: 'Remove a chip', to: 'A2' }
+      ],
+      note: 'Canvas state 13. Chosen people become removable chips and the primary turns into Share &mdash; this is the ' +
+            'only point in the dialog with a pending change to submit.'
+    },
+    {
+      id: 'B7', sec: 'B', name: 'Sharing in flight',
+      apply: function () {
+        reset();
+        S.chips = [
+          { id: 'sara', name: 'Sara Iyer', email: 'sara.iyer@capillarytech.com' },
+          { id: 'mehul', name: 'Mehul Goel', email: 'mehul.goel@capillarytech.com' }
+        ];
+        S.busy = true;
+      },
+      targets: [{ label: 'Wait - it lands', to: 'B8' }],
+      note: 'Canvas state 14. The primary holds the busy state; nothing else disables, and the dialog stays open. ' +
+            'Seeded as a still frame here &mdash; click Share in B6 to watch it run.'
+    },
+    {
+      id: 'B8', sec: 'B', name: 'Shared',
+      apply: function () {
+        reset();
+        S.people.push(person('sara', 'Sara Iyer', 'sara.iyer@capillarytech.com', 'viewer'));
+        S.people.push(person('mehul', 'Mehul Goel', 'mehul.goel@capillarytech.com', 'viewer'));
+        S.toast = 'Shared with 2 people';
+      },
+      targets: [
+        { label: 'Change a new person to Editor', to: 'C1' },
+        { label: 'Click Done', to: 'A1' }
+      ],
+      note: 'Canvas state 15. New people land as Viewer &mdash; never a role inherited from another dashboard, which ' +
+            'would grant Editor from unrelated history. The toast is the only confirmation; the list is the receipt.'
+    },
+
+    {
+      id: 'C1', sec: 'C', name: 'Role menu',
+      apply: function () { reset(); S.roleMenuFor = 'test12'; },
+      targets: [
+        { label: 'Pick Viewer - the role changes', to: 'A2' },
+        { label: 'Pick Remove access', to: 'C2' }
+      ],
+      note: 'Canvas state 2. Editor and Viewer carry one-line consequences. Remove access sits below a divider &mdash; ' +
+            'a different kind of action, deliberately not a fourth peer role. It takes the same colour as the roles; ' +
+            'red is reserved for failures.'
+    },
+    {
+      id: 'C2', sec: 'C', name: 'Access removed',
+      apply: function () { reset(); S.people = [baseline()[0]]; },
+      targets: [
+        { label: 'Add them back', to: 'B3' },
+        { label: 'Open general access', to: 'C3' }
+      ],
+      note: 'Canvas state 8, after the click. Removal is immediate with no confirm step &mdash; defensible because it is ' +
+            'reversible by re-adding, but it is a decision worth challenging: there is no undo here.'
+    },
+    {
+      id: 'C3', sec: 'C', name: 'Access menu',
+      apply: function () { reset(); S.accessMenuOpen = true; },
+      targets: [
+        { label: 'Pick ' + ORG, to: 'C4' },
+        { label: 'Keep Restricted', to: 'A2' }
+      ],
+      note: 'Canvas state 3. Two options only. Each carries the same sentence that renders under the trigger once ' +
+            'chosen, so the description is never new information.'
+    },
+    {
+      id: 'C4', sec: 'C', name: 'Shared with the org',
+      apply: function () { reset(); S.access = 'org'; },
+      targets: [
+        { label: 'Open the org role dropdown', to: 'C6' },
+        { label: 'Copy link', to: 'C5' },
+        { label: 'Back to Restricted', to: 'A2' }
+      ],
+      note: 'Canvas state 4. Org access carries its own role, defaulting to Viewer, and the sentence below changes ' +
+            'with it. The icon changes shape, lock to building, and the surface stays neutral grey &mdash; indigo is ' +
+            'reserved for primary actions, so a tint here would read as interactive.'
+    },
+    {
+      id: 'C5', sec: 'C', name: 'Link copied',
+      apply: function () { reset(); S.copied = true; },
+      targets: [{ label: 'Wait - it reverts', to: 'A2' }],
+      note: 'Canvas state 5. Confirmation lands on the button itself for about 1.6 seconds, not in a toast &mdash; a ' +
+            'toast is for the share action, which is the thing that can fail.'
+    },
+
+    {
+      id: 'C6', sec: 'C', name: 'Org role menu',
+      apply: function () { reset(); S.access = 'org'; S.orgRoleMenuOpen = true; },
+      targets: [
+        { label: 'Pick Editor &mdash; the whole org can edit', to: 'C4' },
+        { label: 'Keep Viewer', to: 'C4' }
+      ],
+      note: 'Canvas state 22. The same borderless role control as a person row, because it is the same idea &mdash; ' +
+            'one control for one concept. No Remove access here: the org loses access by switching the scope back to ' +
+            'Restricted, not by a destructive row. A person&#39;s own role always beats this default &mdash; see C7.'
+    },
+
+    {
+      id: 'C7', sec: 'C', name: 'Person overrides the org',
+      apply: function () {
+        reset();
+        S.access = 'org';
+        S.orgRole = 'editor';
+        S.people.forEach(function (p) { if (p.id === 'test12') p.role = 'viewer'; });
+      },
+      targets: [
+        { label: 'Set them back to Editor', to: 'C1' },
+        { label: 'Open the org role dropdown', to: 'C6' }
+      ],
+      note: 'The whole org can edit, but test_user12 is a Viewer &mdash; and stays one. An explicit per-person role ' +
+            'always wins, even when it grants LESS than the org default. That is invisible on its own, so the ' +
+            'sentence under general access gains a second line whenever a listed person differs from the default.'
+    },
+
+    {
+      id: 'D1', sec: 'D', name: "People won't load",
+      apply: function () { reset(); S.peopleError = true; },
+      targets: [{ label: 'Click Retry', to: 'A2' }],
+      note: 'Canvas state 16. Only the people list failed, so only it is replaced &mdash; the field and general access ' +
+            'still work. No stack trace, and Retry is right where the list would be.'
+    },
+    {
+      id: 'D2', sec: 'D', name: 'Share failed',
+      apply: function () {
+        reset();
+        S.chips = [
+          { id: 'sara', name: 'Sara Iyer', email: 'sara.iyer@capillarytech.com' },
+          { id: 'mehul', name: 'Mehul Goel', email: 'mehul.goel@capillarytech.com' }
+        ];
+        S.banner = { title: 'Couldn&#39;t share this dashboard', desc: 'Retry, or contact support.' };
+      },
+      targets: [{ label: 'Click Retry - it goes through', to: 'B8' }],
+      note: 'Canvas state 17. The recipients are kept, so Retry means something. Turn on the driver below and click ' +
+            'Share in B6 to reach this the real way.'
+    },
+    {
+      id: 'D3', sec: 'D', name: 'Partial success',
+      apply: function () {
+        reset();
+        S.people.push(person('sara', 'Sara Iyer', 'sara.iyer@capillarytech.com', 'viewer'));
+        S.chips = [{ id: 'mehul', name: 'Mehul Goel', email: 'mehul.goel@capillarytech.com' }];
+        S.banner = {
+          title: 'Shared with 1 of 2 people',
+          desc: 'Mehul Goel&#39;s account is deactivated. Remove them, or ask your admin to reactivate it.'
+        };
+      },
+      targets: [
+        { label: 'Remove the failed chip', to: 'A2' },
+        { label: 'Click Retry', to: 'B8' }
+      ],
+      note: 'Canvas state 18. The one who landed is in the list; the one who did not stays a chip, named with the ' +
+            'reason and the fix. Assumption worth checking: should the failed recipient stay, or be dropped?'
+    },
+    {
+      id: 'D4', sec: 'D', name: 'Outside the org',
+      apply: function () {
+        reset();
+        S.draft = 'priya.n@vendor.com';
+        S.results = 'invalid';
+        S.inputFocused = true;
+        S.caret = 18;
+      },
+      targets: [{ label: 'Clear it and search inside ' + ORG, to: 'B3' }],
+      note: 'Canvas state 19. Refusal grammar &mdash; what it cannot do, what you can do, who to ask. Try any address ' +
+            'outside ' + ORG_DOMAIN + ' in the field and this fires for real.'
+    },
+
+    {
+      id: 'E1', sec: 'E', name: 'Read-only view',
+      apply: function () {
+        reset();
+        S.readonly = true;
+        S.me = 'test12';
+        S.people = [baseline()[0], person('test12', 'test_user12', 'test_user12@gmail.com', 'viewer')];
+      },
+      targets: [{ label: 'Click Close', to: 'A1' }],
+      note: 'Canvas state 9. A Viewer opening Share: no add field, roles as plain text, access as a static row, and ' +
+            'Close instead of Done. Copy link stays &mdash; a viewer can still pass on the link.'
+    },
+    {
+      id: 'E2', sec: 'E', name: 'Nine people',
+      apply: function () {
+        reset();
+        S.people = [baseline()[0], baseline()[1]];
+        ['mehul', 'rakshit', 'punya', 'pavan', 'dev', 'sana', 'tara'].forEach(function (pid) {
+          var d = DIRECTORY.filter(function (x) { return x.id === pid; })[0];
+          S.people.push(person(d.id, d.name, d.email, 'viewer'));
+        });
+      },
+      targets: [{ label: 'Hover a row and remove someone', to: 'E2' }],
+      note: 'Canvas state 20. Past six people the list gets a count and scrolls inside a fixed height, and the row ' +
+            'action collapses to remove-on-hover so nine rows do not become nine dropdowns. Hover is CSS only.'
+    }
+  ];
+
+  var FIRST_STEP = 'A1';
+  var current = FIRST_STEP;
+  var history = [];
+
+  function stepById(id) {
+    return STEPS.filter(function (s) { return s.id === id; })[0];
+  }
+
+  function paintChrome() {
+    var s = stepById(current);
+    document.getElementById('curId').textContent = s.id;
+    document.getElementById('curName').textContent = s.name;
+  }
+
+  function renderRail() {
+    rail.innerHTML = SECTIONS.map(function (sec) {
+      var rows = STEPS.filter(function (s) { return s.sec === sec.key; }).map(function (s) {
+        return '<button class="rrow' + (s.id === current ? ' on' : '') + '" type="button" data-step="' + s.id + '">' +
+          '<span class="ri">' + s.id + '</span><span class="rn">' + esc(s.name) + '</span></button>';
+      }).join('');
+      return '<div class="rsec"><div class="rh"><span class="rt">' + sec.title + '</span>' +
+        '<span class="rd">' + sec.desc + '</span></div>' + rows + '</div>';
+    }).join('');
+    Array.prototype.forEach.call(rail.querySelectorAll('[data-step]'), function (b) {
+      b.onclick = function () { goStep(b.getAttribute('data-step')); };
+    });
+  }
+
+  function renderInspector() {
+    var s = stepById(current);
+    var seen = history.concat([current]).filter(function (v, i, a) { return a.indexOf(v) === i; });
+    insp.innerHTML =
+      '<div class="iblk"><div class="ih">Where you have been</div>' +
+        '<div class="chips">' + seen.map(function (id) {
+          return '<span class="hchip' + (id === current ? ' now' : '') + '">' + id + '</span>';
+        }).join('') + '</div></div>' +
+      '<div class="iblk"><div class="ih">If you click&hellip;</div>' +
+        s.targets.map(function (t) {
+          return '<button class="trow" type="button" data-goto="' + t.to + '">' +
+            '<span class="tl">' + esc(t.label) + '</span><span class="tt">' + t.to + '</span></button>';
+        }).join('') +
+      '</div>' +
+      '<div class="iblk"><div class="ih">This step</div><div class="note">' + s.note + '</div></div>' +
+      '<div class="iblk"><div class="ih">Drivers</div><div class="drivers">' +
+        '<button class="dbtn' + (S.failNext ? ' on' : '') + '" type="button" data-driver="fail">' +
+          '<span>Fail the next share</span><span class="dstate">' + (S.failNext ? 'ARMED' : 'OFF') + '</span></button>' +
+        '<button class="dbtn' + (S.partialNext ? ' on' : '') + '" type="button" data-driver="partial">' +
+          '<span>Make the next share partial</span><span class="dstate">' + (S.partialNext ? 'ARMED' : 'OFF') + '</span></button>' +
+      '</div></div>' +
+      '<div class="iblk"><div class="helpcard"><b>Use the screen.</b> Every control that leads somewhere is live &mdash; ' +
+        'type in the field, open the dropdowns, share for real. Turn on <b>Click targets</b> to outline them, or ' +
+        'use the list above to jump to an outcome.</div></div>';
+
+    Array.prototype.forEach.call(insp.querySelectorAll('[data-goto]'), function (b) {
+      b.onclick = function () { goStep(b.getAttribute('data-goto')); };
+    });
+    Array.prototype.forEach.call(insp.querySelectorAll('[data-driver]'), function (b) {
+      b.onclick = function () {
+        var d = b.getAttribute('data-driver');
+        if (d === 'fail') { S.failNext = !S.failNext; if (S.failNext) S.partialNext = false; }
+        if (d === 'partial') { S.partialNext = !S.partialNext; if (S.partialNext) S.failNext = false; }
+        renderInspector();
+      };
+    });
+  }
+
+  function goStep(id, quiet) {
+    var s = stepById(id);
+    if (!s) return;
+    if (current !== id) history.push(current);
+    current = id;
+    if (!quiet) s.apply();
+    if (location.hash.replace('#', '').toUpperCase() !== id) {
+      // window.history, not the step history array above.
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', '#' + id);
+      } else {
+        location.hash = id;
+      }
+    }
+    paintChrome();
+    renderRail();
+    render();
+    renderInspector();
+  }
+
+  function fitStage() {
+    var pad = 48;
+    var byW = (stage.clientWidth - pad) / W;
+    var byH = (stage.clientHeight - pad) / H;
+    // A stage measured at zero (hidden pane, background tab, first paint before
+    // layout) must not collapse the frame to nothing and leave it there.
+    var s = Math.min(byW > 0 ? byW : 1, byH > 0 ? byH : 1, 1);
+    if (!(s > 0.2)) s = 0.2;
+    frame.style.transform = 'scale(' + s + ')';
+    holder.style.width = (W * s) + 'px';
+    holder.style.height = (H * s) + 'px';
+  }
+  window.addEventListener('resize', fitStage);
+  if (window.ResizeObserver) { new ResizeObserver(fitStage).observe(stage); }
+
+  document.getElementById('btnBack').onclick = function () {
+    var p = history.pop();
+    if (!p) return;
+    current = p;
+    stepById(p).apply();
+    paintChrome();
+    renderRail();
+    render();
+    renderInspector();
+  };
+  document.getElementById('btnRestart').onclick = function () { history = []; goStep(FIRST_STEP); };
+  document.getElementById('btnTargets').onclick = function (e) {
+    document.body.classList.toggle('targets');
+    e.currentTarget.classList.toggle('on', document.body.classList.contains('targets'));
+  };
+
+  function stepFromHash() {
+    var h = (location.hash || '').replace('#', '').toUpperCase();
+    return stepById(h) ? h : FIRST_STEP;
+  }
+  window.addEventListener('hashchange', function () {
+    var id = stepFromHash();
+    if (id !== current) goStep(id);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    var i = STEPS.findIndex(function (s) { return s.id === current; });
+    var n = e.key === 'ArrowDown' ? i + 1 : i - 1;
+    if (n >= 0 && n < STEPS.length) { e.preventDefault(); goStep(STEPS[n].id); }
+  });
+
+  fitStage();
+  goStep(stepFromHash());
+})();
+</script>
+
+</body>
+</html>
