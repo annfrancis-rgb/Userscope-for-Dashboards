@@ -590,17 +590,12 @@
     return q.indexOf('@') !== -1 && q.indexOf('@' + ORG_DOMAIN) === -1;
   }
   function accessLabel() { return S.access === 'restricted' ? 'Restricted' : ORG; }
-  function orgOverridden() {
-    if (S.access !== 'org') return false;
-    return S.people.some(function (p) { return p.role !== 'owner' && p.role !== S.orgRole; });
-  }
   function accessDesc() {
     if (S.access === 'restricted') {
       return 'Only the owner and people with access can open the dashboard.';
     }
-    return 'Anyone in ' + ORG + ' with dashboard access can ' +
-      (S.orgRole === 'editor' ? 'edit' : 'view') + '.' +
-      (orgOverridden() ? ' People listed above keep their own role, which takes priority.' : '');
+    return 'Anyone in this organisation can ' + (S.orgRole === 'editor' ? 'edit' : 'view') +
+      ' the dashboard, unless you set a different role for them above.';
   }
   function orgRoleLabel() { return S.orgRole === 'editor' ? 'Editor' : 'Viewer'; }
 
@@ -1365,8 +1360,8 @@
         { label: 'Open the org role dropdown', to: 'C6' }
       ],
       note: 'The whole org can edit, but test_user12 is a Viewer &mdash; and stays one. An explicit per-person role ' +
-            'always wins, even when it grants LESS than the org default. That is invisible on its own, so the ' +
-            'sentence under general access gains a second line whenever a listed person differs from the default.'
+            'always wins, even when it grants LESS than the org default. The sentence under general access states ' +
+            'that rule outright, so the exception is readable without hunting through the list.'
     },
 
     {
