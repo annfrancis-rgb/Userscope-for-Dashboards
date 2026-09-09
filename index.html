@@ -229,8 +229,12 @@
   }
   .close-btn:hover { color: var(--aira-text-secondary); }
 
-  .search-field { position: relative; margin-bottom: 24px; margin-right: 6px; }
-  .search-field.with-suggestions { margin-bottom: 12px; }
+  .search-field { position: relative; margin-bottom: 8px; margin-right: 6px; }
+  .field-hint {
+    font-size: 13px; line-height: 20px; color: var(--aira-text-tertiary);
+    margin: 0 6px 24px 0;
+  }
+  .field-hint.with-suggestions { margin-bottom: 12px; }
   .search-input {
     width: 100%; height: 36px; border: 1px solid var(--aira-border-default); border-radius: 8px;
     padding: 0 12px 0 36px; font-family: inherit; font-size: 14px; line-height: 20px;
@@ -277,7 +281,7 @@
     position: relative;
     display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
     border: 1px solid var(--aira-border-default); border-radius: 8px;
-    padding: 4px 8px; min-height: 36px; margin-bottom: 24px; margin-right: 6px;
+    padding: 4px 8px; min-height: 36px; margin-bottom: 8px; margin-right: 6px;
     background: var(--aira-bg-elevated); cursor: text;
   }
   .chip-field:focus-within { border-color: var(--indigo-600); box-shadow: 0 0 0 3px var(--indigo-50); }
@@ -395,22 +399,23 @@
   .divider { height: 1px; background: var(--aira-border-default); margin: 20px 0; }
   .general-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
   .general-icon {
-    width: 36px; height: 36px; border-radius: 999px; background: var(--aira-bg-hover);
+    width: 28px; height: 28px; border-radius: 999px; background: var(--aira-bg-hover);
     color: var(--aira-text-secondary); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
+  .general-icon svg { width: 14px; height: 14px; }
   .general-dd { flex: 1 1 auto; position: relative; }
   .general-trigger {
-    display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; height: 36px;
-    padding: 0 8px 0 12px; border-radius: 8px; border: 1px solid var(--aira-border-default);
-    background: var(--aira-bg-elevated); font-size: 14px; line-height: 20px; font-weight: 500;
-    color: var(--aira-text-primary);
+    display: inline-flex; align-items: center; gap: 8px; height: 36px;
+    padding: 0 16px; margin-left: -16px; border-radius: 8px; border: none; background: transparent;
+    font-size: 14px; line-height: 20px; font-weight: 500; color: var(--aira-text-primary);
   }
-  .general-trigger:hover { border-color: var(--aira-border-strong); }
-  .general-trigger.open { border-color: var(--indigo-600); box-shadow: 0 0 0 3px var(--indigo-50); }
-  .general-trigger.static { border-color: transparent; background: transparent; padding: 0 0 0 10px; height: 28px; color: var(--aira-text-secondary); cursor: default; }
+  .general-trigger:hover { background: var(--aira-bg-hover); }
+  .general-trigger.open { background: var(--aira-bg-selected); }
+  .general-trigger.static { padding: 0; margin-left: 0; height: 28px; color: var(--aira-text-secondary); cursor: default; }
+  .general-trigger.static:hover { background: transparent; }
   .general-trigger .chev { color: var(--aira-text-tertiary); display: flex; flex-shrink: 0; }
   .general-menu {
-    position: absolute; left: 0; right: 0; top: calc(100% + 4px); background: var(--aira-bg-elevated);
+    position: absolute; left: 0; width: 340px; top: calc(100% + 4px); background: var(--aira-bg-elevated);
     border: 1px solid var(--aira-border-default); border-radius: 10px; box-shadow: var(--shadow-md);
     padding: 4px; z-index: 40;
   }
@@ -428,6 +433,7 @@
   .btn-primary { background: var(--indigo-600); color: #FFFFFF; }
   .btn-primary:hover { background: var(--indigo-500); }
   .btn-primary.busy { opacity: 0.75; }
+  .btn-primary:disabled { opacity: 0.5; pointer-events: none; }
   .btn-primary.busy .spin { animation: spin 900ms linear infinite; display: flex; }
   @keyframes spin { to { transform: rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) { .btn-primary.busy .spin { animation: none; } }
@@ -558,6 +564,7 @@
     banner: null,
     toast: null,
     copied: false,
+    shared: false,          // a share has completed, so the primary becomes Done
     listScrollTop: 0,
     me: 'owner',
     failNext: false,
@@ -692,6 +699,9 @@
   function renderInputArea() {
     if (S.readonly) return '';
 
+    var hint = '<p class="field-hint' + (S.suggestions.length ? ' with-suggestions' : '') + '" id="addHint">' +
+      'People you add will receive an email with a link to this dashboard.</p>';
+
     if (S.chips.length) {
       return '<div class="chip-field">' + S.chips.map(function (c) {
         return '<span class="chip">' +
@@ -701,17 +711,18 @@
         '</span>';
       }).join('') +
       '<input class="chip-input" id="addField" type="text" autocomplete="off" ' +
-        'placeholder="Add another person" value="' + esc(S.draft) + '" data-live="Add another person">' +
-      renderResults() + '</div>';
+        'aria-describedby="addHint" placeholder="Add another person" value="' + esc(S.draft) + '" ' +
+        'data-live="Add another person">' +
+      renderResults() + '</div>' + hint;
     }
 
-    var withSug = S.suggestions.length ? ' with-suggestions' : '';
-    return '<div class="search-field' + withSug + '">' +
+    return '<div class="search-field">' +
       '<span class="search-icon">' + ICON.search + '</span>' +
       '<input class="search-input" id="addField" type="text" autocomplete="off" ' +
-        'placeholder="Add people by name or email" value="' + esc(S.draft) + '" data-live="Add people">' +
+        'aria-describedby="addHint" placeholder="Add people by name or email" value="' + esc(S.draft) + '" ' +
+        'data-live="Add people">' +
       renderResults() +
-    '</div>' + renderSuggestions();
+    '</div>' + hint + renderSuggestions();
   }
 
   function renderSuggestions() {
@@ -799,7 +810,8 @@
       }
       var removable = many && p.role !== 'owner' && !S.readonly;
       if (removable) {
-        trailing = '<button class="row-remove" type="button" aria-label="Remove ' + esc(p.name) + '" ' +
+        trailing = trailing +
+          '<button class="row-remove" type="button" aria-label="Remove ' + esc(p.name) + '" ' +
           'data-act="revoke" data-id="' + p.id + '" data-live="Remove ' + esc(p.name) + '">' + ICON.rowX + '</button>';
       }
       return '<div class="person-row' + (removable ? ' removable' : '') + '">' +
@@ -876,8 +888,12 @@
       primary = '<button class="btn btn-primary" type="button" data-act="share" data-live="Retry">Retry</button>';
     } else if (S.chips.length) {
       primary = '<button class="btn btn-primary" type="button" data-act="share" data-live="Share">Share</button>';
-    } else {
+    } else if (S.shared) {
       primary = '<button class="btn btn-primary" type="button" data-act="close" data-live="Done">Done</button>';
+    } else {
+      // Nothing to share yet. Inert rather than a live control that does
+      // nothing, and deliberately not labelled Done — nothing has happened.
+      primary = '<button class="btn btn-primary" type="button" disabled>Share</button>';
     }
     return '<div class="modal-footer">' + copy + primary + '</div>';
   }
@@ -990,6 +1006,7 @@
       // inherited from another dashboard.
       S.chips.forEach(function (c) { S.people.push(person(c.id, c.name, c.email, 'viewer')); });
       S.chips = [];
+      S.shared = true;
       S.toast = 'Shared with ' + n + (n === 1 ? ' person' : ' people');
       timers.toast = setTimeout(function () { timers.toast = null; S.toast = null; render(); }, 4000);
       goStep('B8', true);
@@ -1145,6 +1162,7 @@
     S.banner = null;
     S.toast = null;
     S.copied = false;
+    S.shared = false;
     S.listScrollTop = 0;
     S.me = 'owner';
     // Drivers are deliberately NOT reset &mdash; they are the reviewer's setting.
@@ -1176,7 +1194,8 @@
         { label: 'Click Copy link', to: 'C5' }
       ],
       note: 'Canvas state 1. Restricted by default, one editor already on. Role and access changes apply as you make ' +
-            'them, so the primary reads Done, not Save.'
+            'them, so there is nothing to save. The primary reads Share and stays inert until you add someone; it ' +
+            'only becomes Done once a share has actually gone through.'
     },
     {
       id: 'A3', sec: 'A', name: 'Default, not shared',
@@ -1274,6 +1293,7 @@
         reset();
         S.people.push(person('sara', 'Sara Iyer', 'sara.iyer@capillarytech.com', 'viewer'));
         S.people.push(person('mehul', 'Mehul Goel', 'mehul.goel@capillarytech.com', 'viewer'));
+        S.shared = true;
         S.toast = 'Shared with 2 people';
       },
       targets: [
