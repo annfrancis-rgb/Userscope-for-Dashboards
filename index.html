@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Userscope Permissions Walkthrough</title>
+<title>App Userscope and Sharing</title>
 </head>
 <body>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap">
@@ -42,109 +42,34 @@
   button { font-family: inherit; color: inherit; }
   :focus-visible { outline: 2px solid var(--wt-accent); outline-offset: 2px; }
 
-  .wt { height: 100vh; min-width: 1100px; display: flex; flex-direction: column; background: var(--wt-canvas); }
-  .wbody { flex: 1; display: flex; min-height: 0; }
-  .rail {
-    width: 220px; flex-shrink: 0; overflow-y: auto; padding: 20px 0 28px;
-    background: var(--wt-surface); border-right: 1px solid var(--wt-border);
-  }
-  .stage {
-    flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center;
-    overflow: hidden; padding: 24px;
-  }
-  .insp {
-    width: 280px; flex-shrink: 0; overflow-y: auto; padding: 20px 16px 28px;
-    background: var(--wt-surface); border-left: 1px solid var(--wt-border);
-  }
+  /* The app owns the whole window at 1:1 — nothing steals width from it, and
+     nothing scales it, so type and spacing can be judged at real size. */
+  html, body { height: 100%; }
 
-  /* Top bar */
-  .wtop {
-    height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 24px;
-    background: var(--wt-surface); border-bottom: 1px solid var(--wt-border);
+  /* Prototype controls. Deliberately not product chrome: a dark strip at the
+     bottom edge, carrying only the states you cannot reach by clicking. */
+  .proto-bar {
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: 16px; z-index: 200;
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(17, 24, 39, 0.94); border-radius: 999px; padding: 6px;
+    box-shadow: 0 10px 30px rgba(17, 24, 39, 0.28);
+    font-family: "Roboto", system-ui, sans-serif;
   }
-  .wtop .mark { display: flex; }
-  .wtop .wname { font-size: 16px; line-height: 24px; font-weight: 500; }
-  .wtop .sep { flex: 1; }
-  .sid {
-    font-size: 11px; line-height: 16px; font-weight: 700; letter-spacing: 0.06em;
-    color: var(--wt-accent); background: var(--wt-accent-bg); border-radius: 4px; padding: 2px 8px;
+  .proto-bar label {
+    display: flex; align-items: center; gap: 6px; padding-left: 10px;
+    font-size: 12px; line-height: 16px; color: rgba(255, 255, 255, 0.6);
   }
-  .wtop .sname { font-size: 14px; line-height: 20px; color: var(--wt-ink-2); }
-  .wbtn {
-    display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: 8px;
-    border: 1px solid var(--wt-border); background: var(--wt-surface);
-    font-size: 14px; line-height: 20px; color: var(--wt-ink-2); cursor: pointer;
+  .proto-bar select, .proto-bar button {
+    appearance: none; border: none; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12); color: #FFFFFF;
+    font-family: inherit; font-size: 13px; line-height: 18px;
+    padding: 6px 12px; cursor: pointer;
   }
-  .wbtn:hover { background: var(--wt-accent-bg); }
-  .wbtn.on { background: var(--wt-accent-bg); border-color: var(--wt-accent); color: var(--wt-accent); }
-
-  /* Left rail */
-  .rsec { padding: 0 0 20px; }
-  .rsec .rh { padding: 0 16px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 4px; }
-  .rsec .rt {
-    font-size: 11px; line-height: 16px; font-weight: 700; letter-spacing: 0.06em;
-    text-transform: uppercase; color: var(--wt-ink-3);
+  .proto-bar select:hover, .proto-bar button:hover { background: rgba(255, 255, 255, 0.2); }
+  .proto-bar select:focus-visible, .proto-bar button:focus-visible {
+    outline: 2px solid #8E97FF; outline-offset: 2px;
   }
-  .rsec .rd { font-size: 13px; line-height: 20px; color: var(--wt-ink-3); }
-  .rrow {
-    display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 16px; border: 0;
-    background: none; text-align: left; font-family: inherit; cursor: pointer;
-  }
-  .rrow:hover { background: var(--wt-accent-bg); }
-  .rrow .ri { width: 24px; flex-shrink: 0; font-size: 13px; line-height: 20px; color: var(--wt-ink-3); }
-  .rrow .rn { font-size: 14px; line-height: 20px; color: var(--wt-ink); }
-  .rrow.on { background: var(--wt-accent-bg); }
-  .rrow.on .ri, .rrow.on .rn { color: var(--wt-accent); font-weight: 500; }
-
-  /* Centre stage */
-  .holder { position: relative; }
-  .frame {
-    width: 1440px; height: 900px; transform-origin: top left; border-radius: 12px; overflow: hidden;
-    border: 1px solid var(--wt-border); background: #fff;
-    box-shadow: 0 18px 44px rgba(17, 24, 39, 0.10), 0 3px 10px rgba(17, 24, 39, 0.05);
-  }
-
-  /* Right inspector */
-  .iblk { margin-bottom: 24px; }
-  .ih {
-    font-size: 11px; line-height: 16px; font-weight: 700; letter-spacing: 0.06em;
-    text-transform: uppercase; color: var(--wt-ink-3); margin-bottom: 12px;
-  }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .hchip {
-    font-size: 11px; line-height: 16px; font-weight: 700; letter-spacing: 0.06em;
-    color: var(--wt-accent); background: var(--wt-accent-bg); border-radius: 4px; padding: 2px 8px;
-  }
-  .hchip.now { background: var(--wt-accent); color: #fff; }
-  .trow {
-    display: flex; align-items: center; gap: 8px; width: 100%; margin-bottom: 8px; padding: 12px;
-    border: 1px solid var(--wt-border); border-radius: 12px; background: var(--wt-surface);
-    text-align: left; font-family: inherit; cursor: pointer;
-  }
-  .trow:hover { background: var(--wt-accent-bg); }
-  .trow .tl { flex: 1; font-size: 14px; line-height: 20px; color: var(--wt-ink); }
-  .trow .tt { font-size: 11px; line-height: 16px; font-weight: 700; letter-spacing: 0.06em; color: var(--wt-ink-3); }
-  .note { font-size: 13px; line-height: 20px; color: var(--wt-ink-2); }
-  .note em { color: var(--wt-ink-3); font-style: normal; }
-  .helpcard {
-    border: 1px solid var(--wt-border); border-radius: 12px; padding: 12px;
-    font-size: 13px; line-height: 20px; color: var(--wt-ink-2);
-  }
-  .helpcard b { font-weight: 500; color: var(--wt-ink); }
-  .drivers { display: flex; flex-direction: column; gap: 8px; }
-  .dbtn {
-    display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%;
-    padding: 10px 12px; border: 1px solid var(--wt-border); border-radius: 10px;
-    background: var(--wt-surface); font-size: 13px; line-height: 20px; color: var(--wt-ink-2);
-    text-align: left; cursor: pointer;
-  }
-  .dbtn:hover { background: var(--wt-accent-bg); }
-  .dbtn .dstate { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: var(--wt-ink-3); }
-  .dbtn.on { border-color: var(--wt-danger); background: var(--wt-danger-bg); color: var(--wt-danger); }
-  .dbtn.on .dstate { color: var(--wt-danger); }
-
-  /* Click targets mode */
-  body.targets [data-live] { outline: 2px dashed var(--wt-accent); outline-offset: 2px; }
+  .proto-bar option { color: #111827; }
 
   /* ---------------------------------------------------------------
      Inside the stage: aiRA design system only.
@@ -174,7 +99,7 @@
     --shadow-md: 0 8px 24px rgba(17, 24, 39, 0.12), 0 2px 6px rgba(17, 24, 39, 0.06);
     --shadow-lg: 0 20px 48px rgba(17, 24, 39, 0.20), 0 4px 12px rgba(17, 24, 39, 0.08);
 
-    width: 1440px; height: 900px; position: relative;
+    width: 100%; min-height: 100vh; position: relative;
     background: var(--aira-bg-canvas);
     color: var(--aira-text-primary);
     font-size: 14px; line-height: 20px;
@@ -210,7 +135,7 @@
   .dash-sample { font-size: 12px; line-height: 16px; color: var(--aira-text-tertiary); margin-top: 16px; }
 
   .scrim {
-    position: absolute; inset: 0; background: rgba(17, 24, 39, 0.45);
+    position: fixed; inset: 0; background: rgba(17, 24, 39, 0.45);
     display: flex; align-items: flex-start; justify-content: center; padding-top: 96px;
   }
 
@@ -445,49 +370,25 @@
   }
 </style>
 
-<div class="wt">
-  <div class="wtop">
-    <span class="mark">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <defs>
-          <linearGradient id="wtgrad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#6268FF"/><stop offset="1" stop-color="#3BA7FF"/>
-          </linearGradient>
-        </defs>
-        <path d="M12 2.5 13.7 8.3 19.5 10 13.7 11.7 12 17.5 10.3 11.7 4.5 10 10.3 8.3Z" fill="url(#wtgrad)"/>
-        <path d="M18 15.5 18.8 18.2 21.5 19 18.8 19.8 18 22.5 17.2 19.8 14.5 19 17.2 18.2Z" fill="url(#wtgrad)"/>
-      </svg>
-    </span>
-    <span class="wname">Dashboard sharing walkthrough</span>
-    <span class="sid" id="curId">A1</span>
-    <span class="sname" id="curName">Dashboard</span>
-    <span class="sep"></span>
-    <button class="wbtn" id="btnTargets" type="button">Click targets</button>
-    <button class="wbtn" id="btnBack" type="button">Back</button>
-    <button class="wbtn" id="btnRestart" type="button">Restart</button>
-  </div>
-  <div class="wbody">
-    <div class="rail" id="rail"></div>
-    <div class="stage" id="stage">
-      <div class="holder" id="holder">
-        <div class="frame" id="frame"><div id="app"></div></div>
-      </div>
-    </div>
-    <div class="insp" id="insp"></div>
-  </div>
+<div id="app"></div>
+
+<div class="proto-bar">
+  <label for="scenario">Scenario</label>
+  <select id="scenario"></select>
+  <label for="shareOutcome">Next share</label>
+  <select id="shareOutcome">
+    <option value="ok">Works</option>
+    <option value="fail">Fails</option>
+    <option value="partial">Partly fails</option>
+  </select>
+  <button id="btnRestart" type="button">Restart</button>
 </div>
 
 <script>
 (function () {
   "use strict";
 
-  var W = 1440, H = 900;
-  var stage = document.getElementById('stage');
-  var holder = document.getElementById('holder');
-  var frame = document.getElementById('frame');
   var app = document.getElementById('app');
-  var rail = document.getElementById('rail');
-  var insp = document.getElementById('insp');
 
   function esc(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -972,7 +873,7 @@
     if (!S.chips.length) return;
     S.banner = null;
     S.busy = true;
-    goStep('B7', true);
+    render();
     timers.share = setTimeout(function () {
       timers.share = null;
       S.busy = false;
@@ -983,7 +884,7 @@
           title: 'Couldn&#39;t share this dashboard',
           desc: 'Retry, or contact support.'
         };
-        goStep('D2', true);
+        render();
         return;
       }
 
@@ -997,7 +898,7 @@
           title: 'Shared with ' + landed.length + ' of ' + (landed.length + 1) + ' people',
           desc: esc(failing.name) + '&#39;s account is deactivated. Remove them, or ask your admin to reactivate it.'
         };
-        goStep('D3', true);
+        render();
         return;
       }
 
@@ -1009,7 +910,7 @@
       S.shared = true;
       S.toast = 'Shared with ' + n + (n === 1 ? ' person' : ' people');
       timers.toast = setTimeout(function () { timers.toast = null; S.toast = null; render(); }, 4000);
-      goStep('B8', true);
+      render();
     }, 1300);
   }
 
@@ -1026,19 +927,19 @@
     }
     if (looksExternal()) {
       S.results = 'invalid';
-      goStep('D4', true);
+      render();
       return;
     }
     S.results = 'loading';
-    goStep('B2', true);
+    render();
     timers.load = setTimeout(function () {
       timers.load = null;
       var found = matches();
       S.results = found.length ? 'list' : 'none';
       if (!found.length) {
-        goStep('B5', true);
+        render();
       } else {
-        goStep(found.some(function (p) { return hasAccess(p.id); }) ? 'B4' : 'B3', true);
+        render();
       }
     }, 420);
   }
@@ -1047,13 +948,13 @@
     var a = el.getAttribute('data-act');
     var id = el.getAttribute('data-id');
 
-    if (a === 'open') { S.open = true; goStep('A2', true); return; }
-    if (a === 'close') { S.open = false; openMenusClosed(); goStep('A1', true); return; }
+    if (a === 'open') { S.open = true; render(); return; }
+    if (a === 'close') { S.open = false; openMenusClosed(); render(); return; }
 
-    if (a === 'pick') { addChip(id); goStep('B6', true); return; }
+    if (a === 'pick') { addChip(id); render(); return; }
     if (a === 'unchip') {
       S.chips = S.chips.filter(function (c) { return c.id !== id; });
-      goStep(S.chips.length ? 'B6' : 'A2', true);
+      render();
       return;
     }
     if (a === 'share') { runShare(); return; }
@@ -1061,20 +962,20 @@
     if (a === 'rolemenu') {
       S.roleMenuFor = S.roleMenuFor === id ? null : id;
       S.accessMenuOpen = false;
-      goStep(S.roleMenuFor ? 'C1' : 'A2', true);
+      render();
       return;
     }
     if (a === 'role') {
       var role = el.getAttribute('data-role');
       S.people.forEach(function (p) { if (p.id === id) p.role = role; });
       S.roleMenuFor = null;
-      goStep('A2', true);
+      render();
       return;
     }
     if (a === 'revoke') {
       S.people = S.people.filter(function (p) { return p.id !== id; });
       S.roleMenuFor = null;
-      goStep('C2', true);
+      render();
       return;
     }
 
@@ -1082,26 +983,26 @@
       S.accessMenuOpen = !S.accessMenuOpen;
       S.roleMenuFor = null;
       S.orgRoleMenuOpen = false;
-      goStep(S.accessMenuOpen ? 'C3' : 'A2', true);
+      render();
       return;
     }
     if (a === 'orgrolemenu') {
       S.orgRoleMenuOpen = !S.orgRoleMenuOpen;
       S.roleMenuFor = null;
       S.accessMenuOpen = false;
-      goStep(S.orgRoleMenuOpen ? 'C6' : 'C4', true);
+      render();
       return;
     }
     if (a === 'orgrole') {
       S.orgRole = el.getAttribute('data-role');
       S.orgRoleMenuOpen = false;
-      goStep('C4', true);
+      render();
       return;
     }
     if (a === 'access') {
       S.access = el.getAttribute('data-value');
       S.accessMenuOpen = false;
-      goStep(S.access === 'org' ? 'C4' : 'A2', true);
+      render();
       return;
     }
 
@@ -1109,11 +1010,11 @@
       S.copied = true;
       if (timers.copy) clearTimeout(timers.copy);
       timers.copy = setTimeout(function () { timers.copy = null; S.copied = false; render(); }, 1600);
-      goStep('C5', true);
+      render();
       return;
     }
 
-    if (a === 'reload') { S.peopleError = false; S.people = baseline(); goStep('A2', true); return; }
+    if (a === 'reload') { S.peopleError = false; S.people = baseline(); render(); return; }
   }
 
   app.addEventListener('click', function (e) {
@@ -1168,440 +1069,84 @@
     // Drivers are deliberately NOT reset &mdash; they are the reviewer's setting.
   }
 
-  var SECTIONS = [
-    { key: 'A', title: 'A &middot; First run', desc: 'Opening the dialog on a dashboard aiRA built.' },
-    { key: 'B', title: 'B &middot; Adding people', desc: 'Finding someone and giving them access.' },
-    { key: 'C', title: 'C &middot; Changing access', desc: 'Roles, revoking, and who can open the link.' },
-    { key: 'D', title: 'D &middot; When it fails', desc: 'The four ways this goes wrong in the real product.' },
-    { key: 'E', title: 'E &middot; Other viewers', desc: 'What a non-owner sees, and what scale does.' }
-  ];
+  // ---------------------------------------------------------------
+  // Scenarios. Only the states you cannot reach by clicking the
+  // product: a different role, a dataset size, a failure to arm.
+  // Everything else is reached the way a real user would reach it.
+  // ---------------------------------------------------------------
+  function seed(id, role) {
+    var d = DIRECTORY.filter(function (x) { return x.id === id; })[0];
+    return person(d.id, d.name, d.email, role);
+  }
 
-  var STEPS = [
-    {
-      id: 'A1', sec: 'A', name: 'Dashboard',
-      apply: function () { reset(); S.open = false; },
-      targets: [{ label: 'Click Share in the header', to: 'A2' }],
-      note: 'The entry point. Share sits beside Export in the dashboard header &mdash; the only way into this dialog. ' +
-            'Dashboard figures are sample data.'
-    },
-    {
-      id: 'A2', sec: 'A', name: 'Share dialog',
-      apply: function () { reset(); },
-      targets: [
-        { label: 'Type a name in the field', to: 'B2' },
-        { label: 'Open the role dropdown', to: 'C1' },
-        { label: 'Open general access', to: 'C3' },
-        { label: 'Click Copy link', to: 'C5' }
-      ],
-      note: 'Canvas state 1. Restricted by default, one editor already on. Role and access changes apply as you make ' +
-            'them, so there is nothing to save. The primary reads Share and stays inert until you add someone; it ' +
-            'only becomes Done once a share has actually gone through.'
-    },
-    {
-      id: 'A3', sec: 'A', name: 'Default, not shared',
-      apply: function () { reset(); S.people = [baseline()[0]]; },
-      targets: [
-        { label: 'Type a name in the field', to: 'B2' },
-        { label: 'Open general access', to: 'C3' }
-      ],
-      note: 'Canvas state 7. A dashboard aiRA just built, shared with nobody. No empty-state illustration &mdash; the ' +
-            'owner row plus the field is the whole story.'
-    },
-
-    {
-      id: 'B1', sec: 'B', name: 'Suggestions',
-      apply: function () { reset(); S.suggestions = ['punya', 'rakshit', 'tara']; },
-      targets: [
-        { label: 'Click a suggested person', to: 'B6' },
-        { label: 'Type instead', to: 'B2' }
-      ],
-      note: 'Canvas state 21. Suggestions come from people you shared OTHER dashboards with &mdash; never this one &mdash; and ' +
-            'anyone who already has access is excluded. Capped at three so they do not compete with the list below.'
-    },
-    {
-      id: 'B2', sec: 'B', name: 'Looking people up',
-      apply: function () { reset(); S.draft = 'sa'; S.results = 'loading'; S.inputFocused = true; S.caret = 2; },
-      targets: [{ label: 'Wait - results land', to: 'B3' }],
-      note: 'Canvas state 10. Skeleton rows, not a spinner: the row shape is known before the names are. Seeded here ' +
-            'rather than timed, so the step holds still while you look at it.'
-    },
-    {
-      id: 'B3', sec: 'B', name: 'Results',
-      apply: function () { reset(); S.draft = 'sa'; S.results = 'list'; S.inputFocused = true; S.caret = 2; },
-      targets: [
-        { label: 'Click Sara Iyer', to: 'B6' },
-        { label: 'Keep typing to narrow it', to: 'B3' }
-      ],
-      note: 'Canvas state 6. Live search over the org directory &mdash; type in the field and this filters for real. ' +
-            'Matching is on name and email.'
-    },
-    {
-      id: 'B4', sec: 'B', name: 'Already has access',
-      apply: function () {
+  var SCENARIOS = [
+    { id: 'default', name: 'Default', apply: function () { reset(); } },
+    { id: 'unshared', name: 'Not shared with anyone', apply: function () {
+        reset(); S.people = [baseline()[0]];
+      } },
+    { id: 'suggested', name: 'Suggested people', apply: function () {
+        reset(); S.suggestions = ['punya', 'rakshit', 'tara'];
+      } },
+    { id: 'nine', name: 'Nine people', apply: function () {
         reset();
-        // Mehul is already on this dashboard, so he shows dimmed in results.
-        S.people.push(person('mehul', 'Mehul Goel', 'mehul.goel@capillarytech.com', 'viewer'));
-        S.draft = 'me';
-        S.results = 'list';
-        S.inputFocused = true;
-        S.caret = 2;
-      },
-      targets: [{ label: 'Clear the field and start again', to: 'A2' }],
-      note: 'Canvas state 12. Someone already on the dashboard stays visible but dimmed and marked Has access, ' +
-            'rather than vanishing from results &mdash; disappearing reads as a broken search. The row is inert.'
-    },
-    {
-      id: 'B5', sec: 'B', name: 'No matches',
-      apply: function () { reset(); S.draft = 'zubin'; S.results = 'none'; S.inputFocused = true; S.caret = 5; },
-      targets: [{ label: 'Type a name that exists', to: 'B3' }],
-      note: 'Canvas state 11. Names the query back and gives the one useful next move &mdash; search by full email &mdash; ' +
-            'rather than an illustration.'
-    },
-    {
-      id: 'B6', sec: 'B', name: 'Recipients chosen',
-      apply: function () {
-        reset();
-        S.chips = [
-          { id: 'sara', name: 'Sara Iyer', email: 'sara.iyer@capillarytech.com' },
-          { id: 'mehul', name: 'Mehul Goel', email: 'mehul.goel@capillarytech.com' }
-        ];
-      },
-      targets: [
-        { label: 'Click Share', to: 'B7' },
-        { label: 'Remove a chip', to: 'A2' }
-      ],
-      note: 'Canvas state 13. Chosen people become removable chips and the primary turns into Share &mdash; this is the ' +
-            'only point in the dialog with a pending change to submit.'
-    },
-    {
-      id: 'B7', sec: 'B', name: 'Sharing in flight',
-      apply: function () {
-        reset();
-        S.chips = [
-          { id: 'sara', name: 'Sara Iyer', email: 'sara.iyer@capillarytech.com' },
-          { id: 'mehul', name: 'Mehul Goel', email: 'mehul.goel@capillarytech.com' }
-        ];
-        S.busy = true;
-      },
-      targets: [{ label: 'Wait - it lands', to: 'B8' }],
-      note: 'Canvas state 14. The primary holds the busy state; nothing else disables, and the dialog stays open. ' +
-            'Seeded as a still frame here &mdash; click Share in B6 to watch it run.'
-    },
-    {
-      id: 'B8', sec: 'B', name: 'Shared',
-      apply: function () {
-        reset();
-        S.people.push(person('sara', 'Sara Iyer', 'sara.iyer@capillarytech.com', 'viewer'));
-        S.people.push(person('mehul', 'Mehul Goel', 'mehul.goel@capillarytech.com', 'viewer'));
-        S.shared = true;
-        S.toast = 'Shared with 2 people';
-      },
-      targets: [
-        { label: 'Change a new person to Editor', to: 'C1' },
-        { label: 'Click Done', to: 'A1' }
-      ],
-      note: 'Canvas state 15. New people land as Viewer &mdash; never a role inherited from another dashboard, which ' +
-            'would grant Editor from unrelated history. The toast is the only confirmation; the list is the receipt.'
-    },
-
-    {
-      id: 'C1', sec: 'C', name: 'Role menu',
-      apply: function () { reset(); S.roleMenuFor = 'test12'; },
-      targets: [
-        { label: 'Pick Viewer - the role changes', to: 'A2' },
-        { label: 'Pick Remove access', to: 'C2' }
-      ],
-      note: 'Canvas state 2. Editor and Viewer carry one-line consequences. Remove access sits below a divider &mdash; ' +
-            'a different kind of action, deliberately not a fourth peer role. It takes the same colour as the roles; ' +
-            'red is reserved for failures.'
-    },
-    {
-      id: 'C2', sec: 'C', name: 'Access removed',
-      apply: function () { reset(); S.people = [baseline()[0]]; },
-      targets: [
-        { label: 'Add them back', to: 'B3' },
-        { label: 'Open general access', to: 'C3' }
-      ],
-      note: 'Canvas state 8, after the click. Removal is immediate with no confirm step &mdash; defensible because it is ' +
-            'reversible by re-adding, but it is a decision worth challenging: there is no undo here.'
-    },
-    {
-      id: 'C3', sec: 'C', name: 'Access menu',
-      apply: function () { reset(); S.accessMenuOpen = true; },
-      targets: [
-        { label: 'Pick ' + ORG, to: 'C4' },
-        { label: 'Keep Restricted', to: 'A2' }
-      ],
-      note: 'Canvas state 3. Two options only. Each carries the same sentence that renders under the trigger once ' +
-            'chosen, so the description is never new information.'
-    },
-    {
-      id: 'C4', sec: 'C', name: 'Shared with the org',
-      apply: function () { reset(); S.access = 'org'; },
-      targets: [
-        { label: 'Open the org role dropdown', to: 'C6' },
-        { label: 'Copy link', to: 'C5' },
-        { label: 'Back to Restricted', to: 'A2' }
-      ],
-      note: 'Canvas state 4. Org access carries its own role, defaulting to Viewer, and the sentence below changes ' +
-            'with it. The icon changes shape, lock to building, and the surface stays neutral grey &mdash; indigo is ' +
-            'reserved for primary actions, so a tint here would read as interactive.'
-    },
-    {
-      id: 'C5', sec: 'C', name: 'Link copied',
-      apply: function () { reset(); S.copied = true; },
-      targets: [{ label: 'Wait - it reverts', to: 'A2' }],
-      note: 'Canvas state 5. Confirmation lands on the button itself for about 1.6 seconds, not in a toast &mdash; a ' +
-            'toast is for the share action, which is the thing that can fail.'
-    },
-
-    {
-      id: 'C6', sec: 'C', name: 'Org role menu',
-      apply: function () { reset(); S.access = 'org'; S.orgRoleMenuOpen = true; },
-      targets: [
-        { label: 'Pick Editor &mdash; the whole org can edit', to: 'C4' },
-        { label: 'Keep Viewer', to: 'C4' }
-      ],
-      note: 'Canvas state 22. The same borderless role control as a person row, because it is the same idea &mdash; ' +
-            'one control for one concept. No Remove access here: the org loses access by switching the scope back to ' +
-            'Restricted, not by a destructive row. A person&#39;s own role always beats this default &mdash; see C7.'
-    },
-
-    {
-      id: 'C7', sec: 'C', name: 'Person overrides the org',
-      apply: function () {
-        reset();
-        S.access = 'org';
-        S.orgRole = 'editor';
-        S.people.forEach(function (p) { if (p.id === 'test12') p.role = 'viewer'; });
-      },
-      targets: [
-        { label: 'Set them back to Editor', to: 'C1' },
-        { label: 'Open the org role dropdown', to: 'C6' }
-      ],
-      note: 'The whole org can edit, but test_user12 is a Viewer &mdash; and stays one. An explicit per-person role ' +
-            'always wins, even when it grants LESS than the org default. The sentence under general access states ' +
-            'that rule outright, so the exception is readable without hunting through the list.'
-    },
-
-    {
-      id: 'D1', sec: 'D', name: "People won't load",
-      apply: function () { reset(); S.peopleError = true; },
-      targets: [{ label: 'Click Retry', to: 'A2' }],
-      note: 'Canvas state 16. Only the people list failed, so only it is replaced &mdash; the field and general access ' +
-            'still work. No stack trace, and Retry is right where the list would be.'
-    },
-    {
-      id: 'D2', sec: 'D', name: 'Share failed',
-      apply: function () {
-        reset();
-        S.chips = [
-          { id: 'sara', name: 'Sara Iyer', email: 'sara.iyer@capillarytech.com' },
-          { id: 'mehul', name: 'Mehul Goel', email: 'mehul.goel@capillarytech.com' }
-        ];
-        S.banner = { title: 'Couldn&#39;t share this dashboard', desc: 'Retry, or contact support.' };
-      },
-      targets: [{ label: 'Click Retry - it goes through', to: 'B8' }],
-      note: 'Canvas state 17. The recipients are kept, so Retry means something. Turn on the driver below and click ' +
-            'Share in B6 to reach this the real way.'
-    },
-    {
-      id: 'D3', sec: 'D', name: 'Partial success',
-      apply: function () {
-        reset();
-        S.people.push(person('sara', 'Sara Iyer', 'sara.iyer@capillarytech.com', 'viewer'));
-        S.chips = [{ id: 'mehul', name: 'Mehul Goel', email: 'mehul.goel@capillarytech.com' }];
-        S.banner = {
-          title: 'Shared with 1 of 2 people',
-          desc: 'Mehul Goel&#39;s account is deactivated. Remove them, or ask your admin to reactivate it.'
-        };
-      },
-      targets: [
-        { label: 'Remove the failed chip', to: 'A2' },
-        { label: 'Click Retry', to: 'B8' }
-      ],
-      note: 'Canvas state 18. The one who landed is in the list; the one who did not stays a chip, named with the ' +
-            'reason and the fix. Assumption worth checking: should the failed recipient stay, or be dropped?'
-    },
-    {
-      id: 'D4', sec: 'D', name: 'Outside the org',
-      apply: function () {
-        reset();
-        S.draft = 'priya.n@vendor.com';
-        S.results = 'invalid';
-        S.inputFocused = true;
-        S.caret = 18;
-      },
-      targets: [{ label: 'Clear it and search inside ' + ORG, to: 'B3' }],
-      note: 'Canvas state 19. Refusal grammar &mdash; what it cannot do, what you can do, who to ask. Try any address ' +
-            'outside ' + ORG_DOMAIN + ' in the field and this fires for real.'
-    },
-
-    {
-      id: 'E1', sec: 'E', name: 'Read-only view',
-      apply: function () {
+        ['mehul', 'rakshit', 'punya', 'pavan', 'dev', 'sana', 'tara'].forEach(function (id) {
+          S.people.push(seed(id, 'viewer'));
+        });
+      } },
+    { id: 'viewer', name: 'Read-only (viewer)', apply: function () {
         reset();
         S.readonly = true;
         S.me = 'test12';
         S.people = [baseline()[0], person('test12', 'test_user12', 'test_user12@gmail.com', 'viewer')];
-      },
-      targets: [{ label: 'Click Close', to: 'A1' }],
-      note: 'Canvas state 9. A Viewer opening Share: no add field, roles as plain text, access as a static row, and ' +
-            'Close instead of Done. Copy link stays &mdash; a viewer can still pass on the link.'
-    },
-    {
-      id: 'E2', sec: 'E', name: 'Nine people',
-      apply: function () {
-        reset();
-        S.people = [baseline()[0], baseline()[1]];
-        ['mehul', 'rakshit', 'punya', 'pavan', 'dev', 'sana', 'tara'].forEach(function (pid) {
-          var d = DIRECTORY.filter(function (x) { return x.id === pid; })[0];
-          S.people.push(person(d.id, d.name, d.email, 'viewer'));
-        });
-      },
-      targets: [{ label: 'Hover a row and remove someone', to: 'E2' }],
-      note: 'Canvas state 20. Past six people the list gets a count and scrolls inside a fixed height, and the row ' +
-            'action collapses to remove-on-hover so nine rows do not become nine dropdowns. Hover is CSS only.'
-    }
+      } },
+    { id: 'loaderror', name: "People won't load", apply: function () {
+        reset(); S.peopleError = true;
+      } }
   ];
 
-  var FIRST_STEP = 'A1';
-  var current = FIRST_STEP;
-  var history = [];
+  var scenarioSel = document.getElementById('scenario');
+  var outcomeSel = document.getElementById('shareOutcome');
 
-  function stepById(id) {
-    return STEPS.filter(function (s) { return s.id === id; })[0];
+  function scenarioById(id) {
+    return SCENARIOS.filter(function (x) { return x.id === id; })[0];
   }
 
-  function paintChrome() {
-    var s = stepById(current);
-    document.getElementById('curId').textContent = s.id;
-    document.getElementById('curName').textContent = s.name;
+  function applyOutcome() {
+    var v = outcomeSel.value;
+    S.failNext = v === 'fail';
+    S.partialNext = v === 'partial';
   }
 
-  function renderRail() {
-    rail.innerHTML = SECTIONS.map(function (sec) {
-      var rows = STEPS.filter(function (s) { return s.sec === sec.key; }).map(function (s) {
-        return '<button class="rrow' + (s.id === current ? ' on' : '') + '" type="button" data-step="' + s.id + '">' +
-          '<span class="ri">' + s.id + '</span><span class="rn">' + esc(s.name) + '</span></button>';
-      }).join('');
-      return '<div class="rsec"><div class="rh"><span class="rt">' + sec.title + '</span>' +
-        '<span class="rd">' + sec.desc + '</span></div>' + rows + '</div>';
-    }).join('');
-    Array.prototype.forEach.call(rail.querySelectorAll('[data-step]'), function (b) {
-      b.onclick = function () { goStep(b.getAttribute('data-step')); };
-    });
-  }
-
-  function renderInspector() {
-    var s = stepById(current);
-    var seen = history.concat([current]).filter(function (v, i, a) { return a.indexOf(v) === i; });
-    insp.innerHTML =
-      '<div class="iblk"><div class="ih">Where you have been</div>' +
-        '<div class="chips">' + seen.map(function (id) {
-          return '<span class="hchip' + (id === current ? ' now' : '') + '">' + id + '</span>';
-        }).join('') + '</div></div>' +
-      '<div class="iblk"><div class="ih">If you click&hellip;</div>' +
-        s.targets.map(function (t) {
-          return '<button class="trow" type="button" data-goto="' + t.to + '">' +
-            '<span class="tl">' + esc(t.label) + '</span><span class="tt">' + t.to + '</span></button>';
-        }).join('') +
-      '</div>' +
-      '<div class="iblk"><div class="ih">This step</div><div class="note">' + s.note + '</div></div>' +
-      '<div class="iblk"><div class="ih">Drivers</div><div class="drivers">' +
-        '<button class="dbtn' + (S.failNext ? ' on' : '') + '" type="button" data-driver="fail">' +
-          '<span>Fail the next share</span><span class="dstate">' + (S.failNext ? 'ARMED' : 'OFF') + '</span></button>' +
-        '<button class="dbtn' + (S.partialNext ? ' on' : '') + '" type="button" data-driver="partial">' +
-          '<span>Make the next share partial</span><span class="dstate">' + (S.partialNext ? 'ARMED' : 'OFF') + '</span></button>' +
-      '</div></div>' +
-      '<div class="iblk"><div class="helpcard"><b>Use the screen.</b> Every control that leads somewhere is live &mdash; ' +
-        'type in the field, open the dropdowns, share for real. Turn on <b>Click targets</b> to outline them, or ' +
-        'use the list above to jump to an outcome.</div></div>';
-
-    Array.prototype.forEach.call(insp.querySelectorAll('[data-goto]'), function (b) {
-      b.onclick = function () { goStep(b.getAttribute('data-goto')); };
-    });
-    Array.prototype.forEach.call(insp.querySelectorAll('[data-driver]'), function (b) {
-      b.onclick = function () {
-        var d = b.getAttribute('data-driver');
-        if (d === 'fail') { S.failNext = !S.failNext; if (S.failNext) S.partialNext = false; }
-        if (d === 'partial') { S.partialNext = !S.partialNext; if (S.partialNext) S.failNext = false; }
-        renderInspector();
-      };
-    });
-  }
-
-  function goStep(id, quiet) {
-    var s = stepById(id);
-    if (!s) return;
-    if (current !== id) history.push(current);
-    current = id;
-    if (!quiet) s.apply();
-    if (location.hash.replace('#', '').toUpperCase() !== id) {
-      // window.history, not the step history array above.
+  function goScenario(id, fromHash) {
+    var sc = scenarioById(id) || SCENARIOS[0];
+    sc.apply();
+    applyOutcome();
+    scenarioSel.value = sc.id;
+    if (!fromHash && location.hash.replace('#', '') !== sc.id) {
       if (window.history && window.history.replaceState) {
-        window.history.replaceState(null, '', '#' + id);
-      } else {
-        location.hash = id;
+        window.history.replaceState(null, '', '#' + sc.id);
       }
     }
-    paintChrome();
-    renderRail();
     render();
-    renderInspector();
   }
 
-  function fitStage() {
-    var pad = 48;
-    var byW = (stage.clientWidth - pad) / W;
-    var byH = (stage.clientHeight - pad) / H;
-    // A stage measured at zero (hidden pane, background tab, first paint before
-    // layout) must not collapse the frame to nothing and leave it there.
-    var s = Math.min(byW > 0 ? byW : 1, byH > 0 ? byH : 1, 1);
-    if (!(s > 0.2)) s = 0.2;
-    frame.style.transform = 'scale(' + s + ')';
-    holder.style.width = (W * s) + 'px';
-    holder.style.height = (H * s) + 'px';
-  }
-  window.addEventListener('resize', fitStage);
-  if (window.ResizeObserver) { new ResizeObserver(fitStage).observe(stage); }
+  scenarioSel.innerHTML = SCENARIOS.map(function (sc) {
+    return '<option value="' + sc.id + '">' + esc(sc.name) + '</option>';
+  }).join('');
+  scenarioSel.onchange = function () { goScenario(scenarioSel.value); };
 
-  document.getElementById('btnBack').onclick = function () {
-    var p = history.pop();
-    if (!p) return;
-    current = p;
-    stepById(p).apply();
-    paintChrome();
-    renderRail();
-    render();
-    renderInspector();
-  };
-  document.getElementById('btnRestart').onclick = function () { history = []; goStep(FIRST_STEP); };
-  document.getElementById('btnTargets').onclick = function (e) {
-    document.body.classList.toggle('targets');
-    e.currentTarget.classList.toggle('on', document.body.classList.contains('targets'));
-  };
+  // Arming a failure must not disturb whatever is on screen.
+  outcomeSel.onchange = applyOutcome;
 
-  function stepFromHash() {
-    var h = (location.hash || '').replace('#', '').toUpperCase();
-    return stepById(h) ? h : FIRST_STEP;
-  }
+  document.getElementById('btnRestart').onclick = function () { goScenario(scenarioSel.value); };
+
   window.addEventListener('hashchange', function () {
-    var id = stepFromHash();
-    if (id !== current) goStep(id);
-  });
-  document.addEventListener('keydown', function (e) {
-    if (document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
-    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
-    var i = STEPS.findIndex(function (s) { return s.id === current; });
-    var n = e.key === 'ArrowDown' ? i + 1 : i - 1;
-    if (n >= 0 && n < STEPS.length) { e.preventDefault(); goStep(STEPS[n].id); }
+    var id = location.hash.replace('#', '');
+    if (scenarioById(id)) goScenario(id, true);
   });
 
-  fitStage();
-  goStep(stepFromHash());
+  goScenario(location.hash.replace('#', '') || 'default', true);
 })();
 </script>
-
 </body>
 </html>
