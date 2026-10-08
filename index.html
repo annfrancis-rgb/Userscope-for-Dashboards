@@ -49,7 +49,7 @@
   /* Prototype controls. Deliberately not product chrome: a dark strip at the
      bottom edge, carrying only the states you cannot reach by clicking. */
   .proto-bar {
-    position: fixed; left: 50%; transform: translateX(-50%); bottom: 16px; z-index: 200;
+    position: fixed; left: 50%; transform: translateX(-50%); top: 16px; z-index: 200;
     display: flex; align-items: center; gap: 6px;
     background: rgba(17, 24, 39, 0.94); border-radius: 999px; padding: 6px;
     box-shadow: 0 10px 30px rgba(17, 24, 39, 0.28);
@@ -79,6 +79,7 @@
     --aira-bg-canvas: #F6F8FA;
     --aira-bg-subtle: #F6F8FA;
     --aira-bg-hover: #EEF1F4;
+    --aira-bg-muted: #EEF1F4;
     --aira-bg-selected: #EEF0FF;
     --aira-border-subtle: #EEF1F4;
     --aira-border-default: #E2E6EB;
@@ -86,6 +87,7 @@
     --aira-text-primary: #111827;
     --aira-text-secondary: #364152;
     --aira-text-tertiary: #6B7785;
+    --aira-text-placeholder: #9AA4B2;
     --aira-text-link: #3438C9;
     --indigo-600: #3438C9;
     --indigo-500: #4A50EF;
@@ -149,15 +151,20 @@
   .modal-title { font-size: 18px; line-height: 26px; font-weight: 600; color: var(--aira-text-primary); margin: 0; }
   .close-btn {
     width: 32px; height: 32px; border-radius: 8px; border: none; background: transparent;
-    display: flex; align-items: center; justify-content: flex-end;
-    color: var(--aira-text-tertiary); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--aira-text-secondary); flex-shrink: 0;
+    /* Optical alignment: the glyph is centred in the hit area and the button
+       itself shifts right, so the drawn X sits on the content edge below while
+       the hover fill stays centred on it. Offset measured, not guessed. */
+    margin-inline-end: -11px;
   }
-  .close-btn:hover { color: var(--aira-text-secondary); }
+  .close-btn:hover { background: var(--aira-bg-muted); color: var(--aira-text-primary); }
+  .close-btn:active { background: var(--aira-bg-muted); }
 
-  .search-field { position: relative; margin-bottom: 8px; margin-right: 6px; }
+  .search-field { position: relative; margin-bottom: 8px; }
   .field-hint {
     font-size: 13px; line-height: 20px; color: var(--aira-text-tertiary);
-    margin: 0 6px 24px 0;
+    margin: 0 0 24px 0;
   }
   .field-hint.with-suggestions { margin-bottom: 12px; }
   .search-input {
@@ -166,7 +173,7 @@
     color: var(--aira-text-primary); background: var(--aira-bg-elevated); outline: none;
   }
   .search-input:focus { border-color: var(--indigo-600); box-shadow: 0 0 0 3px var(--indigo-50); }
-  .search-input::placeholder { color: var(--aira-text-tertiary); }
+  .search-input::placeholder { color: var(--aira-text-placeholder); }
   .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--aira-text-tertiary); pointer-events: none; display: flex; }
   .search-results {
     position: absolute; left: 0; right: 0; top: calc(100% + 4px);
@@ -206,7 +213,7 @@
     position: relative;
     display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
     border: 1px solid var(--aira-border-default); border-radius: 8px;
-    padding: 4px 8px; min-height: 36px; margin-bottom: 8px; margin-right: 6px;
+    padding: 4px 8px; min-height: 36px; margin-bottom: 8px;
     background: var(--aira-bg-elevated); cursor: text;
   }
   .chip-field:focus-within { border-color: var(--indigo-600); box-shadow: 0 0 0 3px var(--indigo-50); }
@@ -215,17 +222,21 @@
     background: transparent; font-family: inherit; font-size: 14px; line-height: 20px;
     color: var(--aira-text-primary); padding: 0;
   }
-  .chip-input::placeholder { color: var(--aira-text-tertiary); }
+  .chip-input::placeholder { color: var(--aira-text-placeholder); }
   .chip {
     display: inline-flex; align-items: center; gap: 8px; background: var(--aira-bg-hover);
     border-radius: 999px; padding: 4px 4px 4px 8px; font-size: 13px; line-height: 20px;
     color: var(--aira-text-primary);
   }
-  .chip-x { display: flex; border: none; background: transparent; padding: 0; color: var(--aira-text-tertiary); }
-  .chip-x:hover { color: var(--aira-text-primary); }
+  .chip-x {
+    display: flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; border: none; border-radius: 999px; padding: 0;
+    background: transparent; color: var(--aira-text-secondary);
+  }
+  .chip-x:hover { background: var(--aira-bg-muted); color: var(--aira-text-primary); }
   .chip-more { font-size: 14px; line-height: 20px; color: var(--aira-text-tertiary); padding-left: 4px; }
 
-  .suggest-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 6px 24px 0; }
+  .suggest-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px 0; }
   .suggest-chip {
     display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px 0 8px;
     border: 1px solid var(--aira-border-default); border-radius: 999px;
@@ -237,7 +248,7 @@
   .banner {
     display: flex; align-items: flex-start; gap: 8px; background: var(--red-50);
     border: 1px solid var(--red-border); border-radius: 8px; padding: 12px;
-    margin-bottom: 20px; margin-right: 6px;
+    margin-bottom: 20px;
   }
   .banner-icon { color: var(--red-500); display: flex; flex-shrink: 0; margin-top: 1px; }
   .banner-text { display: flex; flex-direction: column; gap: 2px; }
@@ -261,9 +272,6 @@
   .people-list.scrolls::-webkit-scrollbar-track { background: transparent; }
   .people-list.scrolls::-webkit-scrollbar-thumb { background: var(--aira-border-strong); border-radius: 999px; }
   .person-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-radius: 8px; }
-  .person-row.removable:hover { background: var(--aira-bg-hover); padding-left: 8px; padding-right: 8px; margin-left: -8px; margin-right: -8px; }
-  .person-row.removable .row-remove { visibility: hidden; }
-  .person-row.removable:hover .row-remove { visibility: visible; }
   .avatar {
     width: 28px; height: 28px; border-radius: 999px; background: var(--avatar-grad); color: #FFFFFF;
     display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0;
@@ -274,15 +282,10 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .person-email {
-    font-size: 13px; line-height: 20px; color: var(--aira-text-tertiary);
+    font-size: 14px; line-height: 20px; color: var(--aira-text-tertiary);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .owner-label { font-size: 14px; line-height: 20px; color: var(--aira-text-tertiary); padding: 8px; flex-shrink: 0; }
-  .row-remove {
-    width: 28px; height: 28px; border: none; background: transparent; border-radius: 6px;
-    display: flex; align-items: center; justify-content: center; color: var(--aira-text-tertiary); flex-shrink: 0;
-  }
-  .row-remove:hover { color: var(--aira-text-primary); background: var(--aira-bg-hover); }
 
   .list-error {
     display: flex; flex-direction: column; align-items: center; gap: 4px;
@@ -299,8 +302,9 @@
     color: var(--aira-text-primary);
   }
   .dd-trigger:hover { background: var(--aira-bg-hover); }
-  .dd-trigger.open { background: var(--aira-bg-selected); border-color: var(--aira-border-default); }
+  .dd-trigger.open { background: var(--aira-bg-hover); }
   .dd-trigger .chev { color: var(--aira-text-tertiary); display: flex; }
+  .dd-menu.anchored { position: fixed; right: auto; top: auto; }
   .dd-menu {
     position: absolute; right: 0; top: calc(100% + 4px); width: 240px; background: var(--aira-bg-elevated);
     border: 1px solid var(--aira-border-default); border-radius: 10px; box-shadow: var(--shadow-md);
@@ -324,19 +328,23 @@
   .divider { height: 1px; background: var(--aira-border-default); margin: 20px 0; }
   .general-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
   .general-icon {
-    width: 28px; height: 28px; border-radius: 999px; background: var(--aira-bg-hover);
-    color: var(--aira-text-secondary); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    width: 28px; height: 28px; border-radius: 999px; background: var(--aira-bg-muted);
+    color: var(--aira-text-secondary); display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
   }
   .general-icon svg { width: 14px; height: 14px; }
   .general-dd { flex: 1 1 auto; position: relative; }
   .general-trigger {
-    display: inline-flex; align-items: center; gap: 8px; height: 36px;
-    padding: 0 16px; margin-left: -16px; border-radius: 8px; border: none; background: transparent;
+    /* A control, so radius-md (8px) and the md button height — 999px is the
+       pill radius, which belongs to pills and chips. */
+    display: inline-flex; align-items: center; gap: 12px; height: 36px;
+    padding: 0 12px 0 4px; margin-left: -4px; border-radius: 8px; border: none;
+    background: transparent;
     font-size: 14px; line-height: 20px; font-weight: 500; color: var(--aira-text-primary);
   }
   .general-trigger:hover { background: var(--aira-bg-hover); }
-  .general-trigger.open { background: var(--aira-bg-selected); }
-  .general-trigger.static { padding: 0; margin-left: 0; height: 28px; color: var(--aira-text-secondary); cursor: default; }
+  .general-trigger.open { background: var(--aira-bg-hover); }
+  .general-trigger.static { padding: 0; margin-left: 0; height: 28px; gap: 0; color: var(--aira-text-secondary); cursor: default; }
   .general-trigger.static:hover { background: transparent; }
   .general-trigger .chev { color: var(--aira-text-tertiary); display: flex; flex-shrink: 0; }
   .general-menu {
@@ -344,10 +352,63 @@
     border: 1px solid var(--aira-border-default); border-radius: 10px; box-shadow: var(--shadow-md);
     padding: 4px; z-index: 40;
   }
-  .general-desc { font-size: 13px; line-height: 20px; color: var(--aira-text-tertiary); text-align: left; margin: 8px 0 0 0; }
-  .readonly-note { font-size: 13px; line-height: 20px; color: var(--aira-text-tertiary); margin: 0 0 20px 0; }
+  .general-desc { font-size: 14px; line-height: 20px; color: var(--aira-text-tertiary); text-align: left; margin: 8px 0 0 0; }
 
   .modal-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; }
+  .footer-actions { display: flex; align-items: center; gap: 8px; }
+
+  /* Compose step */
+  .modal-header.compose { align-items: center; justify-content: flex-start; gap: 12px; }
+  .back-btn {
+    width: 32px; height: 32px; border: none; border-radius: 8px; background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--aira-text-secondary); flex-shrink: 0; margin-inline-start: -7px;
+  }
+  .back-btn:hover { background: var(--aira-bg-muted); color: var(--aira-text-primary); }
+  .compose-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 16px; }
+  .compose-row .chip-field { flex: 1 1 auto; margin-bottom: 0; }
+  .dd-trigger.bordered {
+    border: 1px solid var(--aira-border-default); background: var(--aira-bg-elevated);
+    height: 36px; padding: 0 12px;
+  }
+  .dd-trigger.bordered:hover { border-color: var(--aira-border-strong); background: var(--aira-bg-elevated); }
+  .dd-trigger.bordered.open { background: var(--aira-bg-hover); }
+  .check-row { display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 12px; }
+  .check-row input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .check-row .box {
+    width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+    border: 1px solid var(--aira-border-strong); background: var(--aira-bg-elevated);
+    display: flex; align-items: center; justify-content: center; color: #FFFFFF;
+  }
+  .check-row input:checked + .box { background: var(--indigo-600); border-color: var(--indigo-600); }
+  .check-row input:focus-visible + .box { outline: 2px solid var(--indigo-600); outline-offset: 2px; }
+  .check-label { font-size: 14px; line-height: 20px; color: var(--aira-text-primary); }
+  .caps { margin-bottom: 0; }
+  .caps-head {
+    font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--aira-text-tertiary); margin: 0 0 8px 0;
+  }
+  .cap-row { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 4px 0; }
+  .cap-row input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .cap-row .box {
+    width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+    border: 1px solid var(--aira-border-strong); background: var(--aira-bg-elevated);
+    display: flex; align-items: center; justify-content: center; color: #FFFFFF;
+  }
+  .cap-row input:checked + .box { background: var(--indigo-600); border-color: var(--indigo-600); }
+  .cap-row input:focus-visible + .box { outline: 2px solid var(--indigo-600); outline-offset: 2px; }
+  .cap-row.fixed { cursor: default; }
+  .cap-row.fixed .box { background: var(--aira-border-strong); border-color: var(--aira-border-strong); }
+  .cap-label { font-size: 14px; line-height: 20px; color: var(--aira-text-primary); }
+  .cap-row.fixed .cap-label { color: var(--aira-text-secondary); }
+  .message {
+    display: block; width: 100%; margin-top: 0; padding: 12px; border-radius: 8px;
+    border: 1px solid var(--aira-border-default); background: var(--aira-bg-elevated);
+    font-family: inherit; font-size: 14px; line-height: 20px; color: var(--aira-text-primary);
+    resize: vertical; outline: none;
+  }
+  .message:focus { border-color: var(--indigo-600); box-shadow: 0 0 0 3px var(--indigo-50); }
+  .message::placeholder { color: var(--aira-text-placeholder); }
   .btn {
     display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: 8px;
     font-size: 14px; line-height: 20px; font-weight: 500; border: 1px solid transparent;
@@ -364,23 +425,78 @@
   @media (prefers-reduced-motion: reduce) { .btn-primary.busy .spin { animation: none; } }
 
   .toast {
-    position: absolute; left: 50%; transform: translateX(-50%); bottom: 40px;
-    background: #1F2937; color: #FFFFFF; font-size: 13px; line-height: 18px;
-    border-radius: 8px; padding: 10px 14px; box-shadow: var(--shadow-md);
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: 40px;
+    display: flex; align-items: center; gap: 16px;
+    background: #1F2937; color: #FFFFFF; font-size: 13px; line-height: 20px;
+    border-radius: 8px; padding: 10px 12px 10px 16px; box-shadow: var(--shadow-md);
   }
+  .toast-undo {
+    border: none; background: transparent; padding: 2px 6px; border-radius: 6px;
+    font-family: inherit; font-size: 13px; line-height: 20px; font-weight: 500;
+    color: #8E97FF;
+  }
+  .toast-undo:hover { background: rgba(255, 255, 255, 0.12); }
+
+  /* Transfer confirmation */
+  .confirm-scrim { align-items: center; padding-top: 0; }
+  .confirm-card {
+    width: 400px; background: var(--aira-bg-elevated); border-radius: 12px;
+    box-shadow: var(--shadow-lg); border: 1px solid var(--aira-border-default); padding: 24px;
+  }
+  .confirm-title { font-size: 18px; line-height: 26px; font-weight: 600; color: var(--aira-text-primary); margin: 0 0 8px; }
+  .confirm-body { font-size: 14px; line-height: 20px; color: var(--aira-text-tertiary); margin: 0 0 20px; }
+  .confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+  /* Email preview */
+  .email-only { display: none; }
+  /* Only show the recipient picker in email view when it actually has people. */
+  body.email-mode #emailFor:not(:empty) { display: inline-block; }
+  .email-stage { min-height: 100vh; padding: 72px 20px 80px; display: flex; justify-content: center; }
+  .email-client {
+    width: 600px; max-width: 100%; align-self: flex-start;
+    background: var(--aira-bg-elevated); border: 1px solid var(--aira-border-default);
+    border-radius: 12px; box-shadow: var(--shadow-md); overflow: hidden;
+  }
+  .email-head { padding: 20px 24px 16px; border-bottom: 1px solid var(--aira-border-subtle); }
+  .email-subject { font-size: 18px; line-height: 26px; font-weight: 600; color: var(--aira-text-primary); margin-bottom: 14px; }
+  .email-meta { display: flex; align-items: center; gap: 10px; }
+  .email-from-dot { flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--aira-bg-selected); display: flex; align-items: center; justify-content: center; }
+  .email-meta-text { min-width: 0; }
+  .email-from { font-size: 13px; font-weight: 500; color: var(--aira-text-primary); }
+  .email-to { font-size: 12px; color: var(--aira-text-tertiary); }
+  .email-addr { color: var(--aira-text-tertiary); font-weight: 400; }
+  .email-scroll { background: var(--aira-bg-canvas); padding: 28px 24px; }
+  .em-doc { max-width: 476px; margin: 0 auto; background: #FFFFFF; border: 1px solid var(--aira-border-default); border-radius: 12px; padding: 32px 36px 28px; }
+  .em-logo { display: flex; justify-content: center; margin-bottom: 24px; }
+  .em-greet { font-size: 14px; line-height: 20px; color: var(--aira-text-primary); margin: 0 0 6px; }
+  .em-heading { font-size: 20px; line-height: 28px; font-weight: 700; color: var(--aira-text-primary); margin: 0 0 12px; }
+  .em-invite { font-size: 14px; line-height: 22px; color: var(--aira-text-secondary); margin: 0 0 20px; }
+  .em-invite strong { font-weight: 700; color: var(--aira-text-primary); }
+  .em-sender-email { color: var(--aira-text-link); }
+  .em-card { display: flex; align-items: center; gap: 12px; background: var(--aira-bg-canvas); border: 1px solid var(--aira-border-default); border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; }
+  .em-card-icon { flex: none; width: 32px; height: 32px; border-radius: 8px; background: var(--aira-bg-selected); display: flex; align-items: center; justify-content: center; }
+  .em-card-text { min-width: 0; }
+  .em-card-name { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--aira-text-primary); }
+  .em-card-sub { font-size: 13px; line-height: 18px; color: var(--aira-text-tertiary); }
+  .em-note { border-left: 2px solid var(--aira-border-default); padding: 2px 0 2px 14px; margin: 0 0 22px; font-size: 14px; line-height: 22px; color: var(--aira-text-tertiary); font-style: italic; }
+  .em-cta { display: block; text-align: center; background: var(--indigo-600); color: #FFFFFF; text-decoration: none; font-size: 14px; font-weight: 500; line-height: 20px; padding: 12px 20px; border-radius: 8px; }
+  .em-cta:hover { background: var(--indigo-500); }
+  .em-foot { margin: 22px 0 0; padding-top: 18px; border-top: 1px solid var(--aira-border-subtle); font-size: 12px; line-height: 18px; color: var(--aira-text-placeholder); text-align: center; }
+  .email-empty { align-self: flex-start; margin-top: 40px; max-width: 360px; text-align: center; color: var(--aira-text-tertiary); }
+  .email-empty-icon { display: inline-flex; color: var(--aira-text-placeholder); margin-bottom: 12px; }
+  .email-empty-title { font-size: 16px; font-weight: 600; color: var(--aira-text-primary); margin: 0 0 6px; }
+  .email-empty-desc { font-size: 14px; line-height: 20px; margin: 0; }
 </style>
 
 <div id="app"></div>
 
 <div class="proto-bar">
-  <label for="scenario">Scenario</label>
-  <select id="scenario"></select>
-  <label for="shareOutcome">Next share</label>
-  <select id="shareOutcome">
-    <option value="ok">Works</option>
-    <option value="fail">Fails</option>
-    <option value="partial">Partly fails</option>
+  <select id="viewMode">
+    <option value="share">App sharing</option>
+    <option value="email">Email</option>
   </select>
+  <select id="emailFor" class="email-only"></select>
+  <select id="scenario"></select>
   <button id="btnRestart" type="button">Restart</button>
 </div>
 
@@ -401,9 +517,10 @@
   }
 
   var ICON = {
-    close: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+    close: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
     search: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>',
     chev: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
+    chevUp: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>',
     check: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
     checkBig: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
     lock: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
@@ -413,7 +530,31 @@
     smallX: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
     rowX: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
     loader: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/></svg>',
-    plus: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'
+    back: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>',
+    checkSm: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+    plus: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+    eye: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
+    mailBig: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
+    pencil: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+    crown: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l4 4 5-7 5 7 4-4-2 12H5L3 7Z"/></svg>',
+    airaMark: '<svg width="20" height="20" viewBox="110 110 390 390" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M255.919 172.689L297.488 264.727L389.526 306.296L297.488 347.864L255.919 439.902L214.351 347.864L122.312 306.296L214.351 264.727L255.919 172.689Z" fill="url(#am)"/><path d="M422.38 122.312L443.505 169.086L490.279 190.211L443.505 211.336L422.38 258.109L401.255 211.336L354.482 190.211L401.255 169.086L422.38 122.312Z" fill="url(#am)"/><path d="M422.38 356.672L443.505 403.445L490.279 424.57L443.505 445.695L422.38 492.469L401.255 445.695L354.482 424.57L401.255 403.445L422.38 356.672Z" fill="url(#am)"/><defs><linearGradient id="am" x1="122.313" y1="307.391" x2="490.279" y2="307.391" gradientUnits="userSpaceOnUse"><stop stop-color="#6168FF"/><stop offset="0.473102" stop-color="#475FF2"/><stop offset="1" stop-color="#3BA7FF"/></linearGradient></defs></svg>',
+    airaWordmark: '<svg width="80" height="28" viewBox="96 54 372 132" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="aiRA"><path d="M143.509 77.6509L156.423 106.245L185.018 119.16L156.423 132.074L143.509 160.669L130.594 132.074L102 119.16L130.594 106.245L143.509 77.6509Z" fill="url(#wm)"/><path d="M195.225 62L201.788 76.5316L216.32 83.0947L201.788 89.6578L195.225 104.189L188.662 89.6578L174.13 83.0947L188.662 76.5316L195.225 62Z" fill="url(#wm)"/><path d="M195.225 134.811L201.788 149.342L216.32 155.905L201.788 162.468L195.225 177L188.662 162.468L174.13 155.905L188.662 149.342L195.225 134.811Z" fill="url(#wm)"/><path d="M286.406 142.328V118.141C286.406 116.328 286.078 114.766 285.422 113.453C284.766 112.141 283.766 111.125 282.422 110.406C281.109 109.688 279.453 109.328 277.453 109.328C275.609 109.328 274.016 109.641 272.672 110.266C271.328 110.891 270.281 111.734 269.531 112.797C268.781 113.859 268.406 115.062 268.406 116.406H257.156C257.156 114.406 257.641 112.469 258.609 110.594C259.578 108.719 260.984 107.047 262.828 105.578C264.672 104.109 266.875 102.953 269.438 102.109C272 101.266 274.875 100.844 278.062 100.844C281.875 100.844 285.25 101.484 288.188 102.766C291.156 104.047 293.484 105.984 295.172 108.578C296.891 111.141 297.75 114.359 297.75 118.234V140.781C297.75 143.094 297.906 145.172 298.219 147.016C298.562 148.828 299.047 150.406 299.672 151.75V152.5H288.094C287.562 151.281 287.141 149.734 286.828 147.859C286.547 145.953 286.406 144.109 286.406 142.328ZM288.047 121.656L288.141 128.641H280.031C277.938 128.641 276.094 128.844 274.5 129.25C272.906 129.625 271.578 130.188 270.516 130.938C269.453 131.688 268.656 132.594 268.125 133.656C267.594 134.719 267.328 135.922 267.328 137.266C267.328 138.609 267.641 139.844 268.266 140.969C268.891 142.062 269.797 142.922 270.984 143.547C272.203 144.172 273.672 144.484 275.391 144.484C277.703 144.484 279.719 144.016 281.438 143.078C283.188 142.109 284.562 140.938 285.562 139.562C286.562 138.156 287.094 136.828 287.156 135.578L290.812 140.594C290.438 141.875 289.797 143.25 288.891 144.719C287.984 146.188 286.797 147.594 285.328 148.938C283.891 150.25 282.156 151.328 280.125 152.172C278.125 153.016 275.812 153.438 273.188 153.438C269.875 153.438 266.922 152.781 264.328 151.469C261.734 150.125 259.703 148.328 258.234 146.078C256.766 143.797 256.031 141.219 256.031 138.344C256.031 135.656 256.531 133.281 257.531 131.219C258.562 129.125 260.062 127.375 262.031 125.969C264.031 124.562 266.469 123.5 269.344 122.781C272.219 122.031 275.5 121.656 279.188 121.656H288.047ZM322.616 101.781V152.5H311.272V101.781H322.616ZM310.522 88.4688C310.522 86.75 311.085 85.3281 312.21 84.2031C313.366 83.0469 314.96 82.4688 316.991 82.4688C318.991 82.4688 320.569 83.0469 321.726 84.2031C322.882 85.3281 323.46 86.75 323.46 88.4688C323.46 90.1562 322.882 91.5625 321.726 92.6875C320.569 93.8125 318.991 94.375 316.991 94.375C314.96 94.375 313.366 93.8125 312.21 92.6875C311.085 91.5625 310.522 90.1562 310.522 88.4688ZM337.076 84.25H361.217C366.404 84.25 370.826 85.0312 374.482 86.5938C378.139 88.1562 380.936 90.4688 382.873 93.5312C384.842 96.5625 385.826 100.312 385.826 104.781C385.826 108.188 385.201 111.188 383.951 113.781C382.701 116.375 380.936 118.562 378.654 120.344C376.373 122.094 373.654 123.453 370.498 124.422L366.936 126.156H345.232L345.139 116.828H361.404C364.217 116.828 366.561 116.328 368.436 115.328C370.311 114.328 371.717 112.969 372.654 111.25C373.623 109.5 374.107 107.531 374.107 105.344C374.107 102.969 373.639 100.906 372.701 99.1562C371.795 97.375 370.389 96.0156 368.482 95.0781C366.576 94.1094 364.154 93.625 361.217 93.625H348.842V152.5H337.076V84.25ZM376.029 152.5L359.998 121.844L372.326 121.797L388.592 151.891V152.5H376.029ZM425.083 93.3438L404.693 152.5H392.364L418.052 84.25H425.927L425.083 93.3438ZM442.146 152.5L421.708 93.3438L420.818 84.25H428.739L454.521 152.5H442.146ZM441.161 127.188V136.516H404.036V127.188H441.161Z" fill="#0A0A0A"/><defs><linearGradient id="wm" x1="102" y1="119.5" x2="216.32" y2="119.5" gradientUnits="userSpaceOnUse"><stop stop-color="#6168FF"/><stop offset="0.473102" stop-color="#475FF2"/><stop offset="1" stop-color="#3BA7FF"/></linearGradient></defs></svg>'
+  };
+
+  var ROLE_SUB = {
+    editor: 'Can edit the dashboard',
+    viewer: 'Can view the dashboard'
+  };
+
+  // What the chosen role is allowed to do. The owner tunes this per batch in
+  // the compose step; fixed rows are stated but not editable.
+  var CAPS = {
+    editor: [
+      { id: 'edit', label: 'Edit and deploy new versions' },
+      { id: 'rename', label: 'Rename the app' },
+      { id: 'share', label: 'Share and change permissions' }
+    ],
+    viewer: []
   };
 
   var ORG = 'Bukl Enterprises';
@@ -432,14 +573,17 @@
     { id: 'sana', name: 'Sana Iqbal', email: 'sana.iqbal@capillarytech.com' }
   ];
 
-  function person(id, name, email, role) {
-    return { id: id, name: name, email: email, role: role };
+  function allCaps() { return { edit: true, rename: true, share: true }; }
+
+  function person(id, name, email, role, caps) {
+    return { id: id, name: name, email: email, role: role, caps: caps || allCaps() };
   }
   function baseline() {
-    return [
-      person('owner', 'Vaibhav Bhat', 'vaibhav.bhat@capillarytech.com', 'owner'),
-      person('test12', 'test_user12', 'test_user12@gmail.com', 'editor')
-    ];
+    return [person('owner', 'Vaibhav Bhat', 'vaibhav.bhat@capillarytech.com', 'owner')];
+  }
+
+  function existingEditor() {
+    return person('test12', 'test_user12', 'test_user12@gmail.com', 'editor');
   }
 
   // ---------------------------------------------------------------
@@ -447,8 +591,14 @@
   // ---------------------------------------------------------------
   var S = {
     open: true,
-    readonly: false,
+    view: 'picker',             // picker | compose
     people: baseline(),
+    batchRole: 'viewer',        // the role this batch of recipients lands on
+    batchRoleMenuOpen: false,
+    caps: { edit: true, rename: true, share: true },
+    manageFor: null,
+    notify: true,
+    message: '',
     peopleError: false,
     draft: '',
     caret: 0,
@@ -465,11 +615,15 @@
     banner: null,
     toast: null,
     copied: false,
+    undo: null,                 // the last removal, restorable from the toast
     shared: false,          // a share has completed, so the primary becomes Done
     listScrollTop: 0,
     me: 'owner',
     failNext: false,
-    partialNext: false
+    partialNext: false,
+    confirmOwner: null,         // id of the person a transfer is being confirmed for
+    mode: 'share',             // share | email  (reviewer's view toggle)
+    emailFor: null             // which recipient's email is previewed
   };
 
   var timers = { load: null, share: null, copy: null, toast: null };
@@ -506,6 +660,19 @@
       ' the dashboard, unless you set a different role for them above.';
   }
   function orgRoleLabel() { return S.orgRole === 'editor' ? 'Editor' : 'Viewer'; }
+
+  function personById(id) {
+    return S.people.filter(function (p) { return p.id === id; })[0] || null;
+  }
+  function ownerPerson() {
+    return S.people.filter(function (p) { return p.role === 'owner'; })[0] || null;
+  }
+  // "Make owner" is owner-only: you cannot give away what you do not hold.
+  function iAmOwner() {
+    var me = personById(S.me);
+    return !!me && me.role === 'owner';
+  }
+  function firstName(name) { return String(name).trim().split(/\s+/)[0]; }
 
   // ---------------------------------------------------------------
   // Render &mdash; the app is rebuilt from state on every change.
@@ -598,10 +765,6 @@
   }
 
   function renderInputArea() {
-    if (S.readonly) return '';
-
-    var hint = '<p class="field-hint' + (S.suggestions.length ? ' with-suggestions' : '') + '" id="addHint">' +
-      'People you add will receive an email with a link to this dashboard.</p>';
 
     if (S.chips.length) {
       return '<div class="chip-field">' + S.chips.map(function (c) {
@@ -612,18 +775,18 @@
         '</span>';
       }).join('') +
       '<input class="chip-input" id="addField" type="text" autocomplete="off" ' +
-        'aria-describedby="addHint" placeholder="Add another person" value="' + esc(S.draft) + '" ' +
+        'placeholder="Add another person" value="' + esc(S.draft) + '" ' +
         'data-live="Add another person">' +
-      renderResults() + '</div>' + hint;
+      renderResults() + '</div>';
     }
 
     return '<div class="search-field">' +
       '<span class="search-icon">' + ICON.search + '</span>' +
       '<input class="search-input" id="addField" type="text" autocomplete="off" ' +
-        'aria-describedby="addHint" placeholder="Add people by name or email" value="' + esc(S.draft) + '" ' +
+        'placeholder="Add people by name or email" value="' + esc(S.draft) + '" ' +
         'data-live="Add people">' +
       renderResults() +
-    '</div>' + hint + renderSuggestions();
+    '</div>' + renderSuggestions();
   }
 
   function renderSuggestions() {
@@ -638,24 +801,35 @@
     }).join('') + '</div>';
   }
 
-  function roleMenu(p) {
+  function roleMenu(p, rolesOnly) {
     if (S.roleMenuFor !== p.id) return '';
     var isEditor = p.role === 'editor';
-    return '<div class="dd-menu" role="listbox">' +
+    return '<div class="dd-menu anchored" role="listbox" data-anchor="' + p.id + '">' +
       '<button class="dd-option" role="option" type="button" data-act="role" data-id="' + p.id + '" ' +
         'data-role="editor" data-live="Set Editor">' +
         '<span class="check">' + (isEditor ? ICON.check : '') + '</span>' +
         '<span class="dd-option-text"><span class="dd-option-label">Editor</span>' +
-        '<span class="dd-option-sub">Can edit the dashboard</span></span></button>' +
+        '<span class="dd-option-sub">' + ROLE_SUB.editor + '</span></span></button>' +
       '<button class="dd-option" role="option" type="button" data-act="role" data-id="' + p.id + '" ' +
         'data-role="viewer" data-live="Set Viewer">' +
         '<span class="check">' + (!isEditor ? ICON.check : '') + '</span>' +
         '<span class="dd-option-text"><span class="dd-option-label">Viewer</span>' +
-        '<span class="dd-option-sub">Can view the dashboard</span></span></button>' +
+        '<span class="dd-option-sub">' + ROLE_SUB.viewer + '</span></span></button>' +
+      (rolesOnly ? '' :
       '<div class="dd-divider"></div>' +
+      (iAmOwner()
+        ? '<button class="dd-option" role="option" type="button" data-act="askowner" data-id="' + p.id + '" ' +
+            'data-live="Make ' + esc(p.name) + ' owner"><span class="check"></span>' +
+            '<span class="dd-option-text"><span class="dd-option-label">Make owner</span></span></button>'
+        : '') +
+      (p.role === 'editor'
+        ? '<button class="dd-option" role="option" type="button" data-act="manage" data-id="' + p.id + '" ' +
+            'data-live="Manage access"><span class="check"></span>' +
+            '<span class="dd-option-text"><span class="dd-option-label">Manage access</span></span></button>'
+        : '') +
       '<button class="dd-option" role="option" type="button" data-act="revoke" data-id="' + p.id + '" ' +
         'data-live="Remove access"><span class="check"></span>' +
-        '<span class="dd-option-text"><span class="dd-option-label">Remove access</span></span></button>' +
+        '<span class="dd-option-text"><span class="dd-option-label">Remove access</span></span></button>') +
     '</div>';
   }
 
@@ -666,12 +840,12 @@
         'data-live="Everyone can edit">' +
         '<span class="check">' + (isEditor ? ICON.check : '') + '</span>' +
         '<span class="dd-option-text"><span class="dd-option-label">Editor</span>' +
-        '<span class="dd-option-sub">Can edit the dashboard</span></span></button>' +
+        '<span class="dd-option-sub">' + ROLE_SUB.editor + '</span></span></button>' +
       '<button class="dd-option" role="option" type="button" data-act="orgrole" data-role="viewer" ' +
         'data-live="Everyone can view">' +
         '<span class="check">' + (!isEditor ? ICON.check : '') + '</span>' +
         '<span class="dd-option-text"><span class="dd-option-label">Viewer</span>' +
-        '<span class="dd-option-sub">Can view the dashboard</span></span></button>' +
+        '<span class="dd-option-sub">' + ROLE_SUB.viewer + '</span></span></button>' +
     '</div>';
   }
 
@@ -698,24 +872,16 @@
       var trailing;
       if (p.role === 'owner') {
         trailing = '<span class="owner-label">Owner</span>';
-      } else if (S.readonly) {
-        trailing = '<span class="owner-label">' + (p.role === 'editor' ? 'Editor' : 'Viewer') + '</span>';
       } else {
         trailing = '<div class="dd">' +
           '<button class="dd-trigger' + (S.roleMenuFor === p.id ? ' open' : '') + '" type="button" ' +
             'aria-haspopup="listbox" aria-expanded="' + (S.roleMenuFor === p.id) + '" ' +
             'data-act="rolemenu" data-id="' + p.id + '" data-live="Role for ' + esc(p.name) + '">' +
             '<span>' + (p.role === 'editor' ? 'Editor' : 'Viewer') + '</span>' +
-            '<span class="chev">' + ICON.chev + '</span></button>' +
+            '<span class="chev">' + (S.roleMenuFor === p.id ? ICON.chevUp : ICON.chev) + '</span></button>' +
           roleMenu(p) + '</div>';
       }
-      var removable = many && p.role !== 'owner' && !S.readonly;
-      if (removable) {
-        trailing = trailing +
-          '<button class="row-remove" type="button" aria-label="Remove ' + esc(p.name) + '" ' +
-          'data-act="revoke" data-id="' + p.id + '" data-live="Remove ' + esc(p.name) + '">' + ICON.rowX + '</button>';
-      }
-      return '<div class="person-row' + (removable ? ' removable' : '') + '">' +
+      return '<div class="person-row">' +
         '<div class="avatar">' + initials(p.name) + '</div>' +
         '<div class="person-info"><div class="person-name">' + esc(p.name) + youMark + '</div>' +
         '<div class="person-email">' + esc(p.email) + '</div></div>' +
@@ -727,12 +893,12 @@
 
   function renderAccess() {
     var icon = S.access === 'restricted' ? ICON.lock : ICON.org;
-    var control = S.readonly
-      ? '<div class="general-trigger static"><span>' + accessLabel() + '</span></div>'
-      : '<button class="general-trigger' + (S.accessMenuOpen ? ' open' : '') + '" type="button" ' +
+    var control = '<button class="general-trigger' + (S.accessMenuOpen ? ' open' : '') + '" type="button" ' +
           'aria-haspopup="listbox" aria-expanded="' + S.accessMenuOpen + '" ' +
           'data-act="accessmenu" data-live="General access">' +
-          '<span>' + accessLabel() + '</span><span class="chev">' + ICON.chev + '</span></button>' +
+          '<span class="general-icon">' + icon + '</span>' +
+          '<span>' + accessLabel() + '</span>' +
+          '<span class="chev">' + (S.accessMenuOpen ? ICON.chevUp : ICON.chev) + '</span></button>' +
         (S.accessMenuOpen ? accessMenu() : '');
 
     // The role sits beside the scope, and only when a scope grants access to
@@ -740,20 +906,18 @@
     // it carries no role.
     var roleControl = '';
     if (S.access === 'org') {
-      roleControl = S.readonly
-        ? '<span class="owner-label">' + orgRoleLabel() + '</span>'
-        : '<div class="dd">' +
+      roleControl = '<div class="dd">' +
             '<button class="dd-trigger' + (S.orgRoleMenuOpen ? ' open' : '') + '" type="button" ' +
               'aria-haspopup="listbox" aria-expanded="' + S.orgRoleMenuOpen + '" ' +
               'data-act="orgrolemenu" data-live="Role for everyone in ' + ORG + '">' +
-              '<span>' + orgRoleLabel() + '</span><span class="chev">' + ICON.chev + '</span>' +
+              '<span>' + orgRoleLabel() + '</span>' +
+              '<span class="chev">' + (S.orgRoleMenuOpen ? ICON.chevUp : ICON.chev) + '</span>' +
             '</button>' + (S.orgRoleMenuOpen ? orgRoleMenu() : '') +
           '</div>';
     }
 
     return '<p class="section-label">General access</p>' +
       '<div class="general-row">' +
-        '<div class="general-icon">' + icon + '</div>' +
         '<div class="general-dd dd">' + control + '</div>' +
         roleControl +
       '</div>' +
@@ -779,24 +943,145 @@
       'data-act="copy" data-live="Copy link">' + (S.copied ? ICON.checkBig : ICON.link) +
       '<span>' + (S.copied ? 'Link copied' : 'Copy link') + '</span></button>';
 
-    var primary;
-    if (S.busy) {
-      primary = '<button class="btn btn-primary busy" type="button" aria-busy="true">' +
-        '<span class="spin">' + ICON.loader + '</span><span>Sharing&hellip;</span></button>';
-    } else if (S.readonly) {
-      primary = '<button class="btn btn-primary" type="button" data-act="close" data-live="Close">Close</button>';
-    } else if (S.banner) {
-      primary = '<button class="btn btn-primary" type="button" data-act="share" data-live="Retry">Retry</button>';
-    } else if (S.chips.length) {
-      primary = '<button class="btn btn-primary" type="button" data-act="share" data-live="Share">Share</button>';
-    } else if (S.shared) {
-      primary = '<button class="btn btn-primary" type="button" data-act="close" data-live="Done">Done</button>';
-    } else {
-      // Nothing to share yet. Inert rather than a live control that does
-      // nothing, and deliberately not labelled Done — nothing has happened.
-      primary = '<button class="btn btn-primary" type="button" disabled>Share</button>';
-    }
+    // Sharing happens in compose, so this view only ever dismisses.
+    var primary = '<button class="btn btn-primary" type="button" data-act="close" data-live="Done">Done</button>';
     return '<div class="modal-footer">' + copy + primary + '</div>';
+  }
+
+  function batchRoleLabel() { return S.batchRole === 'editor' ? 'Editor' : 'Viewer'; }
+
+  function batchRoleMenu() {
+    var isEditor = S.batchRole === 'editor';
+    return '<div class="dd-menu" role="listbox">' +
+      '<button class="dd-option" role="option" type="button" data-act="batchrole" data-role="editor" ' +
+        'data-live="Set Editor"><span class="check">' + (isEditor ? ICON.check : '') + '</span>' +
+        '<span class="dd-option-text"><span class="dd-option-label">Editor</span>' +
+        '<span class="dd-option-sub">' + ROLE_SUB.editor + '</span></span></button>' +
+      '<button class="dd-option" role="option" type="button" data-act="batchrole" data-role="viewer" ' +
+        'data-live="Set Viewer"><span class="check">' + (!isEditor ? ICON.check : '') + '</span>' +
+        '<span class="dd-option-text"><span class="dd-option-label">Viewer</span>' +
+        '<span class="dd-option-sub">' + ROLE_SUB.viewer + '</span></span></button>' +
+    '</div>';
+  }
+
+  function renderCaps() {
+    var list = CAPS[S.batchRole] || [];
+    if (!list.length) return '';
+    var rows = list.map(function (c) {
+      var on = c.fixed ? true : S.caps[c.id] !== false;
+      return '<label class="cap-row' + (c.fixed ? ' fixed' : '') + '">' +
+        '<input type="checkbox" data-cap="' + c.id + '"' + (on ? ' checked' : '') +
+          (c.fixed ? ' disabled' : ' data-live="' + esc(c.label) + '"') + '>' +
+        '<span class="box">' + (on ? ICON.checkSm : '') + '</span>' +
+        '<span class="cap-label">' + c.label + '</span>' +
+      '</label>';
+    }).join('');
+    return '<div class="caps"><p class="caps-head">What an editor can do</p>' + rows + '</div>' +
+      '<div class="divider"></div>';
+  }
+
+  function renderCompose() {
+    var banner = S.banner
+      ? '<div class="banner"><span class="banner-icon">' + ICON.error + '</span>' +
+        '<span class="banner-text"><span class="banner-title">' + S.banner.title + '</span>' +
+        '<span class="banner-desc">' + S.banner.desc + '</span></span></div>'
+      : '';
+
+    var chips = S.chips.map(function (c) {
+      return '<span class="chip"><span>' + esc(c.name) + '</span>' +
+        '<button class="chip-x" type="button" aria-label="Remove ' + esc(c.name) + '" ' +
+          'data-act="unchip" data-id="' + c.id + '" data-live="Remove ' + esc(c.name) + '">' +
+          ICON.smallX + '</button></span>';
+    }).join('');
+
+    var primary = S.busy
+      ? '<button class="btn btn-primary busy" type="button" aria-busy="true">' +
+          '<span class="spin">' + ICON.loader + '</span><span>Sharing&hellip;</span></button>'
+      : S.banner
+        ? '<button class="btn btn-primary" type="button" data-act="send" data-live="Retry">Retry</button>'
+        : '<button class="btn btn-primary" type="button" data-act="send" data-live="Share">Share</button>';
+
+    return '<div class="modal" role="dialog" aria-modal="true" aria-label="Share July sales">' +
+      '<div class="modal-header compose">' +
+        '<button class="back-btn" type="button" aria-label="Back" data-act="back" data-live="Back">' +
+          ICON.back + '</button>' +
+        '<h2 class="modal-title">Share &ldquo;July sales&rdquo;</h2>' +
+      '</div>' +
+      banner +
+      '<div class="compose-row">' +
+        '<div class="chip-field">' + chips +
+          '<input class="chip-input" id="addField" type="text" autocomplete="off" ' +
+            'placeholder="Add another person" value="' + esc(S.draft) + '" ' +
+            'data-live="Add another person">' +
+          renderResults() +
+        '</div>' +
+        '<div class="dd">' +
+          '<button class="dd-trigger bordered' + (S.batchRoleMenuOpen ? ' open' : '') + '" type="button" ' +
+            'aria-haspopup="listbox" aria-expanded="' + S.batchRoleMenuOpen + '" ' +
+            'data-act="batchrolemenu" data-live="Role for these people">' +
+            '<span>' + batchRoleLabel() + '</span>' +
+            '<span class="chev">' + (S.batchRoleMenuOpen ? ICON.chevUp : ICON.chev) + '</span>' +
+          '</button>' + (S.batchRoleMenuOpen ? batchRoleMenu() : '') +
+        '</div>' +
+      '</div>' +
+      renderCaps() +
+      '<label class="check-row">' +
+        '<input type="checkbox" id="notify"' + (S.notify ? ' checked' : '') +
+          ' data-live="Notify people with an email">' +
+        '<span class="box">' + (S.notify ? ICON.checkSm : '') + '</span>' +
+        '<span class="check-label">Notify people with an email</span>' +
+      '</label>' +
+      (S.notify
+        ? '<textarea class="message" id="message" rows="4" ' +
+            'placeholder="Add a short note (optional)" ' +
+            'data-live="Message">' + esc(S.message) + '</textarea>'
+        : '') +
+      '<div class="modal-footer">' +
+        '<button class="btn btn-secondary" type="button" data-act="copy" data-live="Copy link">' +
+          (S.copied ? ICON.checkBig : ICON.link) +
+          '<span>' + (S.copied ? 'Link copied' : 'Copy link') + '</span></button>' +
+        '<div class="footer-actions">' +
+          '<button class="btn btn-secondary" type="button" data-act="cancel" data-live="Cancel">Cancel</button>' +
+          primary +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderManage() {
+    var p = S.people.filter(function (x) { return x.id === S.manageFor; })[0];
+    if (!p) return '';
+    var rows = CAPS.editor.map(function (c) {
+      var on = p.caps[c.id] !== false;
+      return '<label class="cap-row">' +
+        '<input type="checkbox" data-managecap="' + c.id + '"' + (on ? ' checked' : '') +
+          ' data-live="' + esc(c.label) + '">' +
+        '<span class="box">' + (on ? ICON.checkSm : '') + '</span>' +
+        '<span class="cap-label">' + c.label + '</span>' +
+      '</label>';
+    }).join('');
+
+    return '<div class="modal" role="dialog" aria-modal="true" aria-label="Manage access">' +
+      '<div class="modal-header compose">' +
+        '<button class="back-btn" type="button" aria-label="Back" data-act="back" data-live="Back">' +
+          ICON.back + '</button>' +
+        '<h2 class="modal-title">Manage access</h2>' +
+      '</div>' +
+      '<div class="person-row">' +
+        '<div class="avatar">' + initials(p.name) + '</div>' +
+        '<div class="person-info"><div class="person-name">' + esc(p.name) + '</div>' +
+        '<div class="person-email">' + esc(p.email) + '</div></div>' +
+        '<div class="dd">' +
+          '<button class="dd-trigger' + (S.roleMenuFor === p.id ? ' open' : '') + '" type="button" ' +
+            'aria-haspopup="listbox" aria-expanded="' + (S.roleMenuFor === p.id) + '" ' +
+            'data-act="rolemenu" data-id="' + p.id + '" data-live="Role for ' + esc(p.name) + '">' +
+            '<span>Editor</span>' +
+            '<span class="chev">' + (S.roleMenuFor === p.id ? ICON.chevUp : ICON.chev) + '</span>' +
+          '</button>' + roleMenu(p, true) + '</div>' +
+      '</div>' +
+      '<div class="divider"></div>' +
+      '<div class="caps"><p class="caps-head">What they can do</p>' + rows + '</div>' +
+    '</div>';
   }
 
   function renderDialog() {
@@ -805,6 +1090,15 @@
         '<span class="banner-text"><span class="banner-title">' + S.banner.title + '</span>' +
         '<span class="banner-desc">' + S.banner.desc + '</span></span></div>'
       : '';
+
+    if (S.view === 'manage') {
+      return '<div class="scrim">' + renderManage() + renderToast() + '</div>';
+    }
+
+    if (S.view === 'compose') {
+      return '<div class="scrim">' + renderCompose() +
+        renderToast() + '</div>';
+    }
 
     return '<div class="scrim">' +
       '<div class="modal" role="dialog" aria-modal="true" aria-label="Share July sales">' +
@@ -815,20 +1109,165 @@
         '</div>' +
         banner +
         renderInputArea() +
-        (S.readonly ? '<p class="readonly-note">You can view who has access. Only the owner can change sharing settings.</p>' : '') +
         renderPeople() +
         '<div class="divider"></div>' +
         renderAccess() +
         renderFooter() +
       '</div>' +
-      (S.toast ? '<div class="toast" role="status">' + esc(S.toast) + '</div>' : '') +
+      renderToast() +
+    '</div>';
+  }
+
+  // The transfer confirmation: ownership is hard to undo, so it is the one
+  // role change that stops to ask.
+  function renderConfirmOwner() {
+    if (!S.confirmOwner) return '';
+    var p = personById(S.confirmOwner);
+    if (!p) return '';
+    var fn = firstName(p.name);
+    return '<div class="scrim confirm-scrim">' +
+      '<div class="confirm-card" role="dialog" aria-modal="true" aria-label="Make ' + esc(p.name) + ' owner">' +
+        '<h2 class="confirm-title">Make ' + esc(p.name) + ' the owner?</h2>' +
+        '<p class="confirm-body">' + esc(fn) + ' will control sharing, general access, and archiving. ' +
+          'You&rsquo;ll become an editor, and the new owner can change or remove your access.</p>' +
+        '<div class="confirm-actions">' +
+          '<button class="btn btn-secondary" type="button" data-act="cancelowner" data-live="Cancel">Cancel</button>' +
+          '<button class="btn btn-primary" type="button" data-act="confirmowner" data-id="' + p.id + '" data-live="Make ' + esc(p.name) + ' owner">Make owner</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  // ---------------------------------------------------------------
+  // Email preview. The other end of the share action: what the chosen
+  // person actually receives. Type follows the person's situation.
+  // ---------------------------------------------------------------
+  function emailType(p) {
+    if (p.role === 'owner' && p.gotOwner === 'admin') return 'admin';
+    if (p.role === 'owner') return 'transfer';
+    return 'share';
+  }
+
+  function emailBody(p) {
+    var type = emailType(p);
+    var fn = firstName(p.name);
+    var sharer = 'Vaibhav Bhat';
+    var sharerEmail = 'vaibhav.bhat@capillarytech.com';
+    var perm = p.role === 'editor' ? 'edit' : 'view';
+    // Who sent it, with their address, inline in the sentence; the permission
+    // is stated in that sentence and emphasised, the way Drive does it, so
+    // there is no doubt what access you got. The card carries app + org.
+    var senderBit = esc(sharer) + ' (<span class="em-sender-email">' + esc(sharerEmail) + '</span>)';
+    var cardSub = 'App in ' + ORG;
+
+    var heading, invite, cta = 'Open app', footerLine, note = '';
+
+    if (type === 'transfer') {
+      heading = sharer + ' made you the owner of &ldquo;July sales&rdquo;';
+      invite = senderBit + ' made you the <strong>owner</strong> of this app:';
+      footerLine = 'You&rsquo;re receiving this because ' + sharer + ' made you the owner of an app in ' + ORG + '.';
+    } else if (type === 'admin') {
+      heading = 'You&rsquo;re now the owner of &ldquo;July sales&rdquo;';
+      invite = 'Your organisation admin made you the <strong>owner</strong> of this app:';
+      footerLine = 'You&rsquo;re receiving this because your organisation admin made you the owner of an app in ' + ORG + ', after the previous owner&rsquo;s account was deactivated.';
+    } else {
+      heading = sharer + ' shared an app with you';
+      invite = senderBit + ' has invited you to <strong>' + perm + '</strong> this app:';
+      footerLine = 'You&rsquo;re receiving this because ' + sharer + ' shared an app with you from ' + ORG + '.';
+      if (p.message) {
+        note = '<div class="em-note">' + esc(p.message) + '</div>';
+      }
+    }
+
+    return '<div class="em-doc">' +
+      '<div class="em-logo">' + ICON.airaWordmark + '</div>' +
+      '<p class="em-greet">Hi ' + esc(fn) + ',</p>' +
+      '<h1 class="em-heading">' + heading + '</h1>' +
+      '<p class="em-invite">' + invite + '</p>' +
+      '<div class="em-card">' +
+        '<span class="em-card-icon">' + ICON.airaMark + '</span>' +
+        '<div class="em-card-text">' +
+          '<div class="em-card-name">July sales</div>' +
+          '<div class="em-card-sub">' + cardSub + '</div>' +
+        '</div>' +
+      '</div>' +
+      note +
+      '<a class="em-cta" href="#" data-act="noop">' + cta + '</a>' +
+      '<p class="em-foot">' + footerLine + '<br>&copy; 2026 Capillary Technologies. All rights reserved.</p>' +
+    '</div>';
+  }
+
+  // A recipient is anyone who'd receive mail: everyone shared with, plus a new
+  // owner (transfer or admin). Only the original creator-owner gets nothing.
+  function emailRecipients() {
+    return S.people.filter(function (p) {
+      return p.id !== S.me && (p.role !== 'owner' || p.gotOwner);
+    });
+  }
+
+  function renderEmailView() {
+    var recips = emailRecipients();
+    syncEmailSelect(recips);
+
+    if (!recips.length) {
+      return '<div class="email-stage">' +
+        '<div class="email-empty">' +
+          '<span class="email-empty-icon">' + ICON.mailBig + '</span>' +
+          '<p class="email-empty-title">No emails yet</p>' +
+          '<p class="email-empty-desc">Switch to app sharing, add someone or make them owner, then come back to see what they receive.</p>' +
+        '</div>' +
+      '</div>';
+    }
+
+    var p = personById(S.emailFor);
+    if (!p || p.id === S.me) { p = recips[0]; S.emailFor = p.id; }
+
+    var subjectMap = {
+      share: 'Vaibhav Bhat shared July sales with you',
+      transfer: 'You&rsquo;re now the owner of July sales',
+      admin: 'You&rsquo;re now the owner of July sales'
+    };
+
+    return '<div class="email-stage">' +
+      '<div class="email-client">' +
+        '<div class="email-head">' +
+          '<div class="email-subject">' + subjectMap[emailType(p)] + '</div>' +
+          '<div class="email-meta">' +
+            '<span class="email-from-dot">' + ICON.airaMark + '</span>' +
+            '<div class="email-meta-text">' +
+              '<div class="email-from">aiRA <span class="email-addr">&lt;aira@capillarytech.com&gt;</span></div>' +
+              '<div class="email-to">to ' + esc(p.name) + ' <span class="email-addr">&lt;' + esc(p.email) + '&gt;</span></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="email-scroll">' + emailBody(p) + '</div>' +
+      '</div>' +
     '</div>';
   }
 
   function render() {
-    app.innerHTML = renderDashboard() + (S.open ? renderDialog() : '');
+    if (S.mode === 'email') {
+      app.innerHTML = renderEmailView() + renderToast();
+      return;
+    }
+    app.innerHTML = renderDashboard() + (S.open ? renderDialog() : '') + renderConfirmOwner();
     restoreScroll();
+    positionMenus();
     restoreFocus();
+  }
+
+  function positionMenus() {
+    var menu = app.querySelector('.dd-menu.anchored');
+    if (!menu) return;
+    var trigger = app.querySelector('[data-act="rolemenu"][data-id="' + menu.getAttribute('data-anchor') + '"]');
+    if (!trigger) return;
+    var t = trigger.getBoundingClientRect();
+    var h = menu.offsetHeight;
+    var below = t.bottom + 4;
+    // Flip above the trigger when the menu would run past the viewport.
+    var top = (below + h > window.innerHeight - 8) ? Math.max(8, t.top - h - 4) : below;
+    menu.style.top = top + 'px';
+    menu.style.left = Math.max(8, t.right - menu.offsetWidth) + 'px';
   }
 
   function restoreScroll() {
@@ -836,7 +1275,10 @@
     if (!list) return;
     S.listScrollTop = Math.max(0, Math.min(S.listScrollTop, list.scrollHeight - list.clientHeight));
     list.scrollTop = S.listScrollTop;
-    list.addEventListener('scroll', function () { S.listScrollTop = list.scrollTop; });
+    list.onscroll = function () {
+      S.listScrollTop = list.scrollTop;
+      positionMenus();
+    };
   }
 
   function restoreFocus() {
@@ -851,10 +1293,43 @@
   // ---------------------------------------------------------------
   // Interactions. Every one ends in a single render, via act().
   // ---------------------------------------------------------------
+  // An actionable toast dwells longer than a plain confirmation: 4s is tight
+  // when the undo is the only way back from a destructive action.
+  function showToast(text, withUndo) {
+    if (timers.toast) clearTimeout(timers.toast);
+    S.toast = { text: text, undo: !!withUndo };
+    timers.toast = setTimeout(function () {
+      timers.toast = null;
+      S.toast = null;
+      S.undo = null;
+      render();
+    }, withUndo ? 6000 : 4000);
+  }
+
+  function clearToast() {
+    if (timers.toast) { clearTimeout(timers.toast); timers.toast = null; }
+    S.toast = null;
+  }
+
+  function renderToast() {
+    if (!S.toast) return '';
+    return '<div class="toast" role="status">' +
+      '<span>' + esc(S.toast.text) + '</span>' +
+      (S.toast.undo
+        ? '<button class="toast-undo" type="button" data-act="undo" data-live="Undo">Undo</button>'
+        : '') +
+    '</div>';
+  }
+
   function openMenusClosed() {
     S.roleMenuFor = null;
     S.accessMenuOpen = false;
     S.orgRoleMenuOpen = false;
+    S.batchRoleMenuOpen = false;
+  }
+
+  function anyMenuOpen() {
+    return !!(S.roleMenuFor || S.accessMenuOpen || S.orgRoleMenuOpen || S.batchRoleMenuOpen);
   }
 
   function addChip(id) {
@@ -864,6 +1339,8 @@
     S.draft = '';
     S.caret = 0;
     S.results = 'closed';
+    // Picking someone is what opens the compose step, as in Drive.
+    S.view = 'compose';
     // Keep the caret in the field: the next thing you do is usually add
     // another person, and focus must never fall back to the body.
     S.inputFocused = true;
@@ -894,6 +1371,7 @@
         var landed = S.chips.slice(0, -1);
         landed.forEach(function (c) { S.people.push(person(c.id, c.name, c.email, 'viewer')); });
         S.chips = [failing];
+        S.view = 'compose';
         S.banner = {
           title: 'Shared with ' + landed.length + ' of ' + (landed.length + 1) + ' people',
           desc: esc(failing.name) + '&#39;s account is deactivated. Remove them, or ask your admin to reactivate it.'
@@ -903,13 +1381,24 @@
       }
 
       var n = S.chips.length;
-      // A newly shared person always lands as Viewer &mdash; roles are never
-      // inherited from another dashboard.
-      S.chips.forEach(function (c) { S.people.push(person(c.id, c.name, c.email, 'viewer')); });
+      var role = S.batchRole;
+      var caps = { edit: S.caps.edit, rename: S.caps.rename, share: S.caps.share };
+      var notify = S.notify;
+      var msg = S.message;
+      S.chips.forEach(function (c) {
+        var np = person(c.id, c.name, c.email, role, role === 'editor' ? caps : allCaps());
+        np.notify = notify;
+        np.message = msg;
+        S.people.push(np);
+      });
       S.chips = [];
       S.shared = true;
-      S.toast = 'Shared with ' + n + (n === 1 ? ' person' : ' people');
-      timers.toast = setTimeout(function () { timers.toast = null; S.toast = null; render(); }, 4000);
+      S.message = '';
+      S.view = 'picker';
+      // The next batch starts from the safe default again.
+      S.batchRole = 'viewer';
+      S.caps = allCaps();
+      showToast('Shared with ' + n + (n === 1 ? ' person' : ' people'), false);
       render();
     }, 1300);
   }
@@ -944,9 +1433,12 @@
     }, 420);
   }
 
+  var MENU_TOGGLES = { rolemenu: 1, accessmenu: 1, orgrolemenu: 1, batchrolemenu: 1 };
+
   function act(el) {
     var a = el.getAttribute('data-act');
     var id = el.getAttribute('data-id');
+    if (!MENU_TOGGLES[a]) openMenusClosed();
 
     if (a === 'open') { S.open = true; render(); return; }
     if (a === 'close') { S.open = false; openMenusClosed(); render(); return; }
@@ -954,10 +1446,52 @@
     if (a === 'pick') { addChip(id); render(); return; }
     if (a === 'unchip') {
       S.chips = S.chips.filter(function (c) { return c.id !== id; });
+      if (!S.chips.length) { S.view = 'picker'; S.banner = null; }
       render();
       return;
     }
-    if (a === 'share') { runShare(); return; }
+    if (a === 'share' || a === 'send') { runShare(); return; }
+    if (a === 'manage') {
+      S.manageFor = id;
+      S.roleMenuFor = null;
+      S.view = 'manage';
+      render();
+      return;
+    }
+    if (a === 'back' && S.view === 'manage') {
+      // Changes applied as they were ticked, so this is just the way back.
+      S.view = 'picker';
+      S.manageFor = null;
+      render();
+      return;
+    }
+    if (a === 'back' || a === 'cancel') {
+      // Both drop the pending recipients, as in Drive: a pending batch only
+      // exists inside compose.
+      S.chips = [];
+      S.draft = '';
+      S.results = 'closed';
+      S.banner = null;
+      S.message = '';
+      S.batchRoleMenuOpen = false;
+      S.batchRole = 'viewer';
+      S.caps = allCaps();
+      S.view = 'picker';
+      S.manageFor = null;
+      render();
+      return;
+    }
+    if (a === 'batchrolemenu') {
+      S.batchRoleMenuOpen = !S.batchRoleMenuOpen;
+      render();
+      return;
+    }
+    if (a === 'batchrole') {
+      S.batchRole = el.getAttribute('data-role');
+      S.batchRoleMenuOpen = false;
+      render();
+      return;
+    }
 
     if (a === 'rolemenu') {
       S.roleMenuFor = S.roleMenuFor === id ? null : id;
@@ -969,12 +1503,54 @@
       var role = el.getAttribute('data-role');
       S.people.forEach(function (p) { if (p.id === id) p.role = role; });
       S.roleMenuFor = null;
+      if (S.view === 'manage' && role === 'viewer') {
+        // A viewer has nothing to manage, so there is no view left to be in.
+        S.view = 'picker';
+        S.manageFor = null;
+      }
       render();
       return;
     }
+    if (a === 'askowner') {
+      S.confirmOwner = id;
+      render();
+      return;
+    }
+    if (a === 'cancelowner') {
+      S.confirmOwner = null;
+      render();
+      return;
+    }
+    if (a === 'confirmowner') {
+      var target = personById(id);
+      var cur = ownerPerson();
+      // Single owner: the seat moves. The old owner steps down to editor.
+      if (cur && cur.id !== id) { cur.role = 'editor'; cur.caps = allCaps(); cur.gotOwner = null; }
+      if (target) { target.role = 'owner'; target.caps = allCaps(); target.gotOwner = 'transfer'; }
+      S.confirmOwner = null;
+      if (target) showToast(target.name + ' is now the owner', false);
+      render();
+      return;
+    }
+    if (a === 'noop') { return; }
+
     if (a === 'revoke') {
-      S.people = S.people.filter(function (p) { return p.id !== id; });
+      var idx = -1, removed = null;
+      S.people.forEach(function (p, i) { if (p.id === id) { idx = i; removed = p; } });
+      if (!removed) return;
+      S.people.splice(idx, 1);
       S.roleMenuFor = null;
+      S.undo = { person: removed, index: idx };
+      showToast('Removed ' + removed.name, true);
+      render();
+      return;
+    }
+    if (a === 'undo') {
+      if (S.undo) {
+        S.people.splice(S.undo.index, 0, S.undo.person);
+        S.undo = null;
+      }
+      clearToast();
       render();
       return;
     }
@@ -1019,21 +1595,36 @@
 
   app.addEventListener('click', function (e) {
     var el = e.target.closest('[data-act]');
-    if (el) { act(el); return; }
+    if (el) {
+      if (el.tagName === 'A') e.preventDefault();
+      act(el);
+      return;
+    }
     var field = e.target.closest('.chip-field, .search-field');
     if (field) {
       var input = field.querySelector('#addField');
       if (input) { S.inputFocused = true; input.focus(); return; }
     }
     // Clicking outside an open menu closes it, as the real dropdown does.
-    if ((S.roleMenuFor || S.accessMenuOpen) && !e.target.closest('.dd-menu, .general-menu')) {
+    if (anyMenuOpen() && !e.target.closest('.dd-menu, .general-menu')) {
       openMenusClosed();
       render();
     }
   });
   app.addEventListener('input', function (e) {
+    if (e.target.id === 'message') { S.message = e.target.value; return; }
     if (e.target.id !== 'addField') return;
     typed(e.target.value, e.target.selectionStart || e.target.value.length);
+  });
+  app.addEventListener('change', function (e) {
+    if (e.target.id === 'notify') { S.notify = e.target.checked; render(); return; }
+    var cap = e.target.getAttribute && e.target.getAttribute('data-cap');
+    if (cap) { S.caps[cap] = e.target.checked; render(); return; }
+    var mcap = e.target.getAttribute && e.target.getAttribute('data-managecap');
+    if (mcap) {
+      S.people.forEach(function (p) { if (p.id === S.manageFor) p.caps[mcap] = e.target.checked; });
+      render();
+    }
   });
   app.addEventListener('focusin', function (e) {
     if (e.target.id === 'addField') S.inputFocused = true;
@@ -1045,8 +1636,14 @@
   function reset() {
     clearTimers();
     S.open = true;
-    S.readonly = false;
+    S.view = 'picker';
     S.people = baseline();
+    S.batchRole = 'viewer';
+    S.batchRoleMenuOpen = false;
+    S.caps = allCaps();
+    S.manageFor = null;
+    S.notify = true;
+    S.message = '';
     S.peopleError = false;
     S.draft = '';
     S.caret = 0;
@@ -1063,10 +1660,14 @@
     S.banner = null;
     S.toast = null;
     S.copied = false;
+    S.undo = null;
     S.shared = false;
     S.listScrollTop = 0;
     S.me = 'owner';
-    // Drivers are deliberately NOT reset &mdash; they are the reviewer's setting.
+    // Failure arming now belongs to the scenario, so each scenario fully
+    // specifies it: clear here, the failure scenarios set it after.
+    S.failNext = false;
+    S.partialNext = false;
   }
 
   // ---------------------------------------------------------------
@@ -1080,47 +1681,51 @@
   }
 
   var SCENARIOS = [
-    { id: 'default', name: 'Default', apply: function () { reset(); } },
-    { id: 'unshared', name: 'Not shared with anyone', apply: function () {
-        reset(); S.people = [baseline()[0]];
+    { id: 'default', name: 'Only you', apply: function () { reset(); } },
+    { id: 'shared', name: 'Shared with someone', apply: function () {
+        reset(); S.people.push(existingEditor());
       } },
     { id: 'suggested', name: 'Suggested people', apply: function () {
         reset(); S.suggestions = ['punya', 'rakshit', 'tara'];
       } },
     { id: 'nine', name: 'Nine people', apply: function () {
         reset();
+        S.people.push(existingEditor());
         ['mehul', 'rakshit', 'punya', 'pavan', 'dev', 'sana', 'tara'].forEach(function (id) {
           S.people.push(seed(id, 'viewer'));
         });
       } },
-    { id: 'viewer', name: 'Read-only (viewer)', apply: function () {
-        reset();
-        S.readonly = true;
-        S.me = 'test12';
-        S.people = [baseline()[0], person('test12', 'test_user12', 'test_user12@gmail.com', 'viewer')];
-      } },
     { id: 'loaderror', name: "People won't load", apply: function () {
         reset(); S.peopleError = true;
+      } },
+    { id: 'sharefail', name: 'Share will fail', apply: function () {
+        reset(); S.failNext = true;
+      } },
+    { id: 'sharepartial', name: 'Share partly fails', apply: function () {
+        reset(); S.partialNext = true;
+      } },
+    { id: 'reassigned', name: 'Owner left — admin reassigned', apply: function () {
+        reset();
+        // The original owner's account is gone; an admin has made Punya owner.
+        S.people = [
+          person('punya', 'Punya Shetty', 'punya.shetty@capillarytech.com', 'owner'),
+          existingEditor(),
+          seed('tara', 'viewer')
+        ];
+        S.people[0].gotOwner = 'admin';
+        S.me = 'owner'; // the departed original owner, absent from the list
       } }
   ];
 
   var scenarioSel = document.getElementById('scenario');
-  var outcomeSel = document.getElementById('shareOutcome');
 
   function scenarioById(id) {
     return SCENARIOS.filter(function (x) { return x.id === id; })[0];
   }
 
-  function applyOutcome() {
-    var v = outcomeSel.value;
-    S.failNext = v === 'fail';
-    S.partialNext = v === 'partial';
-  }
-
   function goScenario(id, fromHash) {
     var sc = scenarioById(id) || SCENARIOS[0];
     sc.apply();
-    applyOutcome();
     scenarioSel.value = sc.id;
     if (!fromHash && location.hash.replace('#', '') !== sc.id) {
       if (window.history && window.history.replaceState) {
@@ -1135,11 +1740,32 @@
   }).join('');
   scenarioSel.onchange = function () { goScenario(scenarioSel.value); };
 
-  // Arming a failure must not disturb whatever is on screen.
-  outcomeSel.onchange = applyOutcome;
+  // View toggle: app sharing vs. the email a chosen person receives.
+  var viewModeSel = document.getElementById('viewMode');
+  var emailForSel = document.getElementById('emailFor');
+
+  function syncEmailSelect(recips) {
+    if (!emailForSel) return;
+    var html = recips.map(function (p) {
+      var t = emailType(p);
+      var suffix = t === 'share' ? (p.role === 'editor' ? ' — editor' : ' — viewer') : ' — owner';
+      return '<option value="' + p.id + '">' + esc(p.name + suffix) + '</option>';
+    }).join('');
+    if (emailForSel.innerHTML !== html) emailForSel.innerHTML = html;
+    var has = recips.some(function (p) { return p.id === S.emailFor; });
+    emailForSel.value = has ? S.emailFor : (recips[0] ? recips[0].id : '');
+  }
+
+  viewModeSel.onchange = function () {
+    S.mode = viewModeSel.value;
+    document.body.classList.toggle('email-mode', S.mode === 'email');
+    render();
+  };
+  emailForSel.onchange = function () { S.emailFor = emailForSel.value; render(); };
 
   document.getElementById('btnRestart').onclick = function () { goScenario(scenarioSel.value); };
 
+  window.addEventListener('resize', positionMenus);
   window.addEventListener('hashchange', function () {
     var id = location.hash.replace('#', '');
     if (scenarioById(id)) goScenario(id, true);
