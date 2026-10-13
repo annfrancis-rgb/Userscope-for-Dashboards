@@ -160,6 +160,11 @@
   }
   .close-btn:hover { background: var(--aira-bg-muted); color: var(--aira-text-primary); }
   .close-btn:active { background: var(--aira-bg-muted); }
+  /* Gear + close sit together; the group carries the optical edge offset so
+     the rightmost glyph lands on the content edge, not each button. */
+  .header-actions { display: flex; align-items: center; gap: 2px; margin-inline-end: -11px; }
+  .header-actions .close-btn { margin-inline-end: 0; }
+  .settings-help { font-size: 13px; line-height: 20px; color: var(--aira-text-tertiary); margin: 10px 0 0; }
 
   .search-field { position: relative; margin-bottom: 8px; }
   .field-hint {
@@ -358,7 +363,8 @@
   .footer-actions { display: flex; align-items: center; gap: 8px; }
 
   /* Compose step */
-  .modal-header.compose { align-items: center; justify-content: flex-start; gap: 12px; }
+  .modal-header.compose { align-items: center; justify-content: space-between; gap: 12px; }
+  .compose-head-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
   .back-btn {
     width: 32px; height: 32px; border: none; border-radius: 8px; background: transparent;
     display: flex; align-items: center; justify-content: center;
@@ -535,6 +541,7 @@
     plus: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
     eye: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
     mailBig: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
+    gear: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>',
     pencil: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
     crown: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l4 4 5-7 5 7 4-4-2 12H5L3 7Z"/></svg>',
     airaMark: '<svg width="20" height="20" viewBox="110 110 390 390" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M255.919 172.689L297.488 264.727L389.526 306.296L297.488 347.864L255.919 439.902L214.351 347.864L122.312 306.296L214.351 264.727L255.919 172.689Z" fill="url(#am)"/><path d="M422.38 122.312L443.505 169.086L490.279 190.211L443.505 211.336L422.38 258.109L401.255 211.336L354.482 190.211L401.255 169.086L422.38 122.312Z" fill="url(#am)"/><path d="M422.38 356.672L443.505 403.445L490.279 424.57L443.505 445.695L422.38 492.469L401.255 445.695L354.482 424.57L401.255 403.445L422.38 356.672Z" fill="url(#am)"/><defs><linearGradient id="am" x1="122.313" y1="307.391" x2="490.279" y2="307.391" gradientUnits="userSpaceOnUse"><stop stop-color="#6168FF"/><stop offset="0.473102" stop-color="#475FF2"/><stop offset="1" stop-color="#3BA7FF"/></linearGradient></defs></svg>',
@@ -551,7 +558,6 @@
   var CAPS = {
     editor: [
       { id: 'edit', label: 'Edit and deploy new versions' },
-      { id: 'rename', label: 'Rename the app' },
       { id: 'share', label: 'Share and change permissions' }
     ],
     viewer: []
@@ -579,7 +585,7 @@
     return { id: id, name: name, email: email, role: role, caps: caps || allCaps() };
   }
   function baseline() {
-    return [person('owner', 'Vaibhav Bhat', 'vaibhav.bhat@capillarytech.com', 'owner')];
+    return [person('owner', 'Ann Francis', 'annfrancis@capillarytech.com', 'owner')];
   }
 
   function existingEditor() {
@@ -591,7 +597,9 @@
   // ---------------------------------------------------------------
   var S = {
     open: true,
-    view: 'picker',             // picker | compose
+    view: 'picker',             // picker | compose | settings
+    settingsFrom: 'picker',     // where the gear was opened from, so Back returns there
+    canEditorsShare: true,      // app-wide: editors may share & change permissions
     people: baseline(),
     batchRole: 'viewer',        // the role this batch of recipients lands on
     batchRoleMenuOpen: false,
@@ -822,11 +830,6 @@
             'data-live="Make ' + esc(p.name) + ' owner"><span class="check"></span>' +
             '<span class="dd-option-text"><span class="dd-option-label">Make owner</span></span></button>'
         : '') +
-      (p.role === 'editor'
-        ? '<button class="dd-option" role="option" type="button" data-act="manage" data-id="' + p.id + '" ' +
-            'data-live="Manage access"><span class="check"></span>' +
-            '<span class="dd-option-text"><span class="dd-option-label">Manage access</span></span></button>'
-        : '') +
       '<button class="dd-option" role="option" type="button" data-act="revoke" data-id="' + p.id + '" ' +
         'data-live="Remove access"><span class="check"></span>' +
         '<span class="dd-option-text"><span class="dd-option-label">Remove access</span></span></button>') +
@@ -964,22 +967,6 @@
     '</div>';
   }
 
-  function renderCaps() {
-    var list = CAPS[S.batchRole] || [];
-    if (!list.length) return '';
-    var rows = list.map(function (c) {
-      var on = c.fixed ? true : S.caps[c.id] !== false;
-      return '<label class="cap-row' + (c.fixed ? ' fixed' : '') + '">' +
-        '<input type="checkbox" data-cap="' + c.id + '"' + (on ? ' checked' : '') +
-          (c.fixed ? ' disabled' : ' data-live="' + esc(c.label) + '"') + '>' +
-        '<span class="box">' + (on ? ICON.checkSm : '') + '</span>' +
-        '<span class="cap-label">' + c.label + '</span>' +
-      '</label>';
-    }).join('');
-    return '<div class="caps"><p class="caps-head">What an editor can do</p>' + rows + '</div>' +
-      '<div class="divider"></div>';
-  }
-
   function renderCompose() {
     var banner = S.banner
       ? '<div class="banner"><span class="banner-icon">' + ICON.error + '</span>' +
@@ -1003,9 +990,13 @@
 
     return '<div class="modal" role="dialog" aria-modal="true" aria-label="Share July sales">' +
       '<div class="modal-header compose">' +
-        '<button class="back-btn" type="button" aria-label="Back" data-act="back" data-live="Back">' +
-          ICON.back + '</button>' +
-        '<h2 class="modal-title">Share &ldquo;July sales&rdquo;</h2>' +
+        '<div class="compose-head-left">' +
+          '<button class="back-btn" type="button" aria-label="Back" data-act="back" data-live="Back">' +
+            ICON.back + '</button>' +
+          '<h2 class="modal-title">Share &ldquo;July sales&rdquo;</h2>' +
+        '</div>' +
+        '<button class="close-btn" type="button" aria-label="Additional settings" data-act="settings" data-live="Additional settings">' +
+          ICON.gear + '</button>' +
       '</div>' +
       banner +
       '<div class="compose-row">' +
@@ -1024,7 +1015,6 @@
           '</button>' + (S.batchRoleMenuOpen ? batchRoleMenu() : '') +
         '</div>' +
       '</div>' +
-      renderCaps() +
       '<label class="check-row">' +
         '<input type="checkbox" id="notify"' + (S.notify ? ' checked' : '') +
           ' data-live="Notify people with an email">' +
@@ -1048,39 +1038,24 @@
     '</div>';
   }
 
-  function renderManage() {
-    var p = S.people.filter(function (x) { return x.id === S.manageFor; })[0];
-    if (!p) return '';
-    var rows = CAPS.editor.map(function (c) {
-      var on = p.caps[c.id] !== false;
-      return '<label class="cap-row">' +
-        '<input type="checkbox" data-managecap="' + c.id + '"' + (on ? ' checked' : '') +
-          ' data-live="' + esc(c.label) + '">' +
-        '<span class="box">' + (on ? ICON.checkSm : '') + '</span>' +
-        '<span class="cap-label">' + c.label + '</span>' +
-      '</label>';
-    }).join('');
-
-    return '<div class="modal" role="dialog" aria-modal="true" aria-label="Manage access">' +
+  // App-wide editor permission, not per person. Lives behind the gear.
+  function renderSettings() {
+    return '<div class="modal" role="dialog" aria-modal="true" aria-label="Additional settings">' +
       '<div class="modal-header compose">' +
-        '<button class="back-btn" type="button" aria-label="Back" data-act="back" data-live="Back">' +
-          ICON.back + '</button>' +
-        '<h2 class="modal-title">Manage access</h2>' +
+        '<div class="compose-head-left">' +
+          '<button class="back-btn" type="button" aria-label="Back" data-act="back" data-live="Back">' +
+            ICON.back + '</button>' +
+          '<h2 class="modal-title">Additional settings</h2>' +
+        '</div>' +
       '</div>' +
-      '<div class="person-row">' +
-        '<div class="avatar">' + initials(p.name) + '</div>' +
-        '<div class="person-info"><div class="person-name">' + esc(p.name) + '</div>' +
-        '<div class="person-email">' + esc(p.email) + '</div></div>' +
-        '<div class="dd">' +
-          '<button class="dd-trigger' + (S.roleMenuFor === p.id ? ' open' : '') + '" type="button" ' +
-            'aria-haspopup="listbox" aria-expanded="' + (S.roleMenuFor === p.id) + '" ' +
-            'data-act="rolemenu" data-id="' + p.id + '" data-live="Role for ' + esc(p.name) + '">' +
-            '<span>Editor</span>' +
-            '<span class="chev">' + (S.roleMenuFor === p.id ? ICON.chevUp : ICON.chev) + '</span>' +
-          '</button>' + roleMenu(p, true) + '</div>' +
-      '</div>' +
-      '<div class="divider"></div>' +
-      '<div class="caps"><p class="caps-head">What they can do</p>' + rows + '</div>' +
+      '<p class="section-label">Manage editor access</p>' +
+      '<label class="check-row">' +
+        '<input type="checkbox" id="editorShare"' + (S.canEditorsShare ? ' checked' : '') +
+          ' data-live="Editors can share and change permissions">' +
+        '<span class="box">' + (S.canEditorsShare ? ICON.checkSm : '') + '</span>' +
+        '<span class="check-label">Share and change permissions</span>' +
+      '</label>' +
+      '<p class="settings-help">Let editors share the app and control who can access it.</p>' +
     '</div>';
   }
 
@@ -1091,8 +1066,8 @@
         '<span class="banner-desc">' + S.banner.desc + '</span></span></div>'
       : '';
 
-    if (S.view === 'manage') {
-      return '<div class="scrim">' + renderManage() + renderToast() + '</div>';
+    if (S.view === 'settings') {
+      return '<div class="scrim">' + renderSettings() + renderToast() + '</div>';
     }
 
     if (S.view === 'compose') {
@@ -1104,8 +1079,12 @@
       '<div class="modal" role="dialog" aria-modal="true" aria-label="Share July sales">' +
         '<div class="modal-header">' +
           '<h2 class="modal-title">Share &ldquo;July sales&rdquo;</h2>' +
-          '<button class="close-btn" type="button" aria-label="Close" data-act="close" data-live="Close">' +
-            ICON.close + '</button>' +
+          '<div class="header-actions">' +
+            '<button class="close-btn" type="button" aria-label="Additional settings" data-act="settings" data-live="Additional settings">' +
+              ICON.gear + '</button>' +
+            '<button class="close-btn" type="button" aria-label="Close" data-act="close" data-live="Close">' +
+              ICON.close + '</button>' +
+          '</div>' +
         '</div>' +
         banner +
         renderInputArea() +
@@ -1124,12 +1103,10 @@
     if (!S.confirmOwner) return '';
     var p = personById(S.confirmOwner);
     if (!p) return '';
-    var fn = firstName(p.name);
     return '<div class="scrim confirm-scrim">' +
       '<div class="confirm-card" role="dialog" aria-modal="true" aria-label="Make ' + esc(p.name) + ' owner">' +
         '<h2 class="confirm-title">Make ' + esc(p.name) + ' the owner?</h2>' +
-        '<p class="confirm-body">' + esc(fn) + ' will control sharing, general access, and archiving. ' +
-          'You&rsquo;ll become an editor, and the new owner can change or remove your access.</p>' +
+        '<p class="confirm-body">You&rsquo;ll become an editor, and the new owner can change or remove your access.</p>' +
         '<div class="confirm-actions">' +
           '<button class="btn btn-secondary" type="button" data-act="cancelowner" data-live="Cancel">Cancel</button>' +
           '<button class="btn btn-primary" type="button" data-act="confirmowner" data-id="' + p.id + '" data-live="Make ' + esc(p.name) + ' owner">Make owner</button>' +
@@ -1151,8 +1128,8 @@
   function emailBody(p) {
     var type = emailType(p);
     var fn = firstName(p.name);
-    var sharer = 'Vaibhav Bhat';
-    var sharerEmail = 'vaibhav.bhat@capillarytech.com';
+    var sharer = 'Ann Francis';
+    var sharerEmail = 'annfrancis@capillarytech.com';
     var perm = p.role === 'editor' ? 'edit' : 'view';
     // Who sent it, with their address, inline in the sentence; the permission
     // is stated in that sentence and emphasised, the way Drive does it, so
@@ -1223,7 +1200,7 @@
     if (!p || p.id === S.me) { p = recips[0]; S.emailFor = p.id; }
 
     var subjectMap = {
-      share: 'Vaibhav Bhat shared July sales with you',
+      share: 'Ann Francis shared July sales with you',
       transfer: 'You&rsquo;re now the owner of July sales',
       admin: 'You&rsquo;re now the owner of July sales'
     };
@@ -1382,11 +1359,10 @@
 
       var n = S.chips.length;
       var role = S.batchRole;
-      var caps = { edit: S.caps.edit, rename: S.caps.rename, share: S.caps.share };
       var notify = S.notify;
       var msg = S.message;
       S.chips.forEach(function (c) {
-        var np = person(c.id, c.name, c.email, role, role === 'editor' ? caps : allCaps());
+        var np = person(c.id, c.name, c.email, role);
         np.notify = notify;
         np.message = msg;
         S.people.push(np);
@@ -1397,7 +1373,6 @@
       S.view = 'picker';
       // The next batch starts from the safe default again.
       S.batchRole = 'viewer';
-      S.caps = allCaps();
       showToast('Shared with ' + n + (n === 1 ? ' person' : ' people'), false);
       render();
     }, 1300);
@@ -1451,17 +1426,19 @@
       return;
     }
     if (a === 'share' || a === 'send') { runShare(); return; }
-    if (a === 'manage') {
-      S.manageFor = id;
+    if (a === 'settings') {
+      // Remember where we came from so Back returns there &mdash; the compose
+      // batch (chips, note) stays intact while you dip into settings.
+      S.settingsFrom = S.view;
+      S.view = 'settings';
       S.roleMenuFor = null;
-      S.view = 'manage';
+      S.batchRoleMenuOpen = false;
       render();
       return;
     }
-    if (a === 'back' && S.view === 'manage') {
-      // Changes applied as they were ticked, so this is just the way back.
-      S.view = 'picker';
-      S.manageFor = null;
+    if (a === 'back' && S.view === 'settings') {
+      // The toggle applies as it is ticked, so this is just the way back.
+      S.view = S.settingsFrom || 'picker';
       render();
       return;
     }
@@ -1475,9 +1452,7 @@
       S.message = '';
       S.batchRoleMenuOpen = false;
       S.batchRole = 'viewer';
-      S.caps = allCaps();
       S.view = 'picker';
-      S.manageFor = null;
       render();
       return;
     }
@@ -1503,11 +1478,6 @@
       var role = el.getAttribute('data-role');
       S.people.forEach(function (p) { if (p.id === id) p.role = role; });
       S.roleMenuFor = null;
-      if (S.view === 'manage' && role === 'viewer') {
-        // A viewer has nothing to manage, so there is no view left to be in.
-        S.view = 'picker';
-        S.manageFor = null;
-      }
       render();
       return;
     }
@@ -1618,13 +1588,7 @@
   });
   app.addEventListener('change', function (e) {
     if (e.target.id === 'notify') { S.notify = e.target.checked; render(); return; }
-    var cap = e.target.getAttribute && e.target.getAttribute('data-cap');
-    if (cap) { S.caps[cap] = e.target.checked; render(); return; }
-    var mcap = e.target.getAttribute && e.target.getAttribute('data-managecap');
-    if (mcap) {
-      S.people.forEach(function (p) { if (p.id === S.manageFor) p.caps[mcap] = e.target.checked; });
-      render();
-    }
+    if (e.target.id === 'editorShare') { S.canEditorsShare = e.target.checked; render(); return; }
   });
   app.addEventListener('focusin', function (e) {
     if (e.target.id === 'addField') S.inputFocused = true;
@@ -1640,8 +1604,7 @@
     S.people = baseline();
     S.batchRole = 'viewer';
     S.batchRoleMenuOpen = false;
-    S.caps = allCaps();
-    S.manageFor = null;
+    S.canEditorsShare = true;
     S.notify = true;
     S.message = '';
     S.peopleError = false;
