@@ -138,7 +138,8 @@
 
   .scrim {
     position: fixed; inset: 0; background: rgba(17, 24, 39, 0.45);
-    display: flex; align-items: flex-start; justify-content: center; padding-top: 96px;
+    display: flex; align-items: center; justify-content: center; padding: 24px 0;
+    overflow-y: auto;
   }
 
   /* Share dialog */
@@ -218,7 +219,7 @@
     position: relative;
     display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
     border: 1px solid var(--aira-border-default); border-radius: 8px;
-    padding: 4px 8px; min-height: 36px; margin-bottom: 8px;
+    padding: 3px 8px; min-height: 36px; margin-bottom: 8px;
     background: var(--aira-bg-elevated); cursor: text;
   }
   .chip-field:focus-within { border-color: var(--indigo-600); box-shadow: 0 0 0 3px var(--indigo-50); }
@@ -290,7 +291,12 @@
     font-size: 14px; line-height: 20px; color: var(--aira-text-tertiary);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .owner-label { font-size: 14px; line-height: 20px; color: var(--aira-text-tertiary); padding: 8px; flex-shrink: 0; }
+  /* Trailing column: the role WORDS right-align into one vertical line, with the
+     caret hanging in a reserved slot to the right. Owner has no caret, so it gets a
+     matching right pad to keep its text on the same line; the dropdowns push out by
+     8px so their caret reaches the row edge. The header count sits at the right end. */
+  .owner-label { font-size: 14px; line-height: 20px; color: var(--aira-text-tertiary); padding: 8px 23px 8px 0; flex-shrink: 0; }
+  .person-row .dd { margin-inline-end: -8px; }
 
   .list-error {
     display: flex; flex-direction: column; align-items: center; gap: 4px;
@@ -444,7 +450,7 @@
   .toast-undo:hover { background: rgba(255, 255, 255, 0.12); }
 
   /* Transfer confirmation */
-  .confirm-scrim { align-items: center; padding-top: 0; }
+  .confirm-scrim { align-items: center; padding: 24px 0; }
   .confirm-card {
     width: 400px; background: var(--aira-bg-elevated); border-radius: 12px;
     box-shadow: var(--shadow-lg); border: 1px solid var(--aira-border-default); padding: 24px;
@@ -476,9 +482,14 @@
   .em-logo { display: flex; justify-content: center; margin-bottom: 24px; }
   .em-greet { font-size: 14px; line-height: 20px; color: var(--aira-text-primary); margin: 0 0 6px; }
   .em-heading { font-size: 20px; line-height: 28px; font-weight: 700; color: var(--aira-text-primary); margin: 0 0 12px; }
-  .em-invite { font-size: 14px; line-height: 22px; color: var(--aira-text-secondary); margin: 0 0 20px; }
+  .em-invite { font-size: 14px; line-height: 22px; color: var(--aira-text-primary); margin: 16px 0 22px; }
   .em-invite strong { font-weight: 700; color: var(--aira-text-primary); }
-  .em-sender-email { color: var(--aira-text-link); }
+  .em-sender-email { color: var(--aira-text-link); text-decoration: underline; }
+  .em-howto { background: var(--aira-bg-canvas); border: 1px solid var(--aira-border-subtle); border-radius: 8px; padding: 14px 16px; margin: 0 0 22px; }
+  .em-howto-title { display: flex; align-items: center; gap: 8px; font-size: 14px; line-height: 20px; font-weight: 700; color: var(--aira-text-primary); margin: 0 0 4px; }
+  .em-howto-title svg { color: var(--aira-text-secondary); flex: none; }
+  .em-howto-body { font-size: 13px; line-height: 20px; color: var(--aira-text-secondary); margin: 0; }
+  .em-howto-body strong { font-weight: 700; color: var(--aira-text-primary); }
   .em-card { display: flex; align-items: center; gap: 12px; background: var(--aira-bg-canvas); border: 1px solid var(--aira-border-default); border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; }
   .em-card-icon { flex: none; width: 32px; height: 32px; border-radius: 8px; background: var(--aira-bg-selected); display: flex; align-items: center; justify-content: center; }
   .em-card-text { min-width: 0; }
@@ -523,13 +534,14 @@
   }
 
   var ICON = {
-    close: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+    close: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M20 4 4 20M4 4l16 16"/></svg>',
     search: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>',
     chev: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
     chevUp: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>',
     check: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
     checkBig: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
     lock: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+    shield: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>',
     org: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="10" height="18"/><rect x="14" y="9" width="6" height="12"/><path d="M7.5 7h1M7.5 10.5h1M7.5 14h1M11 7h1M11 10.5h1M11 14h1M16.5 12.5h1M16.5 16h1"/></svg>',
     link: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 1 1 0 10h-2M8 12h8"/></svg>',
     error: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>',
@@ -541,7 +553,7 @@
     plus: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
     eye: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
     mailBig: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
-    gear: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>',
+    gear: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><g transform="translate(12 12) scale(0.73) translate(-12 -12)"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></g></svg>',
     pencil: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
     crown: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l4 4 5-7 5 7 4-4-2 12H5L3 7Z"/></svg>',
     airaMark: '<svg width="20" height="20" viewBox="110 110 390 390" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M255.919 172.689L297.488 264.727L389.526 306.296L297.488 347.864L255.919 439.902L214.351 347.864L122.312 306.296L214.351 264.727L255.919 172.689Z" fill="url(#am)"/><path d="M422.38 122.312L443.505 169.086L490.279 190.211L443.505 211.336L422.38 258.109L401.255 211.336L354.482 190.211L401.255 169.086L422.38 122.312Z" fill="url(#am)"/><path d="M422.38 356.672L443.505 403.445L490.279 424.57L443.505 445.695L422.38 492.469L401.255 445.695L354.482 424.57L401.255 403.445L422.38 356.672Z" fill="url(#am)"/><defs><linearGradient id="am" x1="122.313" y1="307.391" x2="490.279" y2="307.391" gradientUnits="userSpaceOnUse"><stop stop-color="#6168FF"/><stop offset="0.473102" stop-color="#475FF2"/><stop offset="1" stop-color="#3BA7FF"/></linearGradient></defs></svg>',
@@ -662,10 +674,10 @@
   function accessLabel() { return S.access === 'restricted' ? 'Restricted' : ORG; }
   function accessDesc() {
     if (S.access === 'restricted') {
-      return 'Only the owner and people with access can open the dashboard.';
+      return 'Only the owner and people with access can open the app.';
     }
     return 'Anyone in this organisation can ' + (S.orgRole === 'editor' ? 'edit' : 'view') +
-      ' the dashboard, unless you set a different role for them above.';
+      ' the app, unless assigned another role.';
   }
   function orgRoleLabel() { return S.orgRole === 'editor' ? 'Editor' : 'Viewer'; }
 
@@ -1131,46 +1143,39 @@
     var sharer = 'Ann Francis';
     var sharerEmail = 'annfrancis@capillarytech.com';
     var perm = p.role === 'editor' ? 'edit' : 'view';
-    // Who sent it, with their address, inline in the sentence; the permission
-    // is stated in that sentence and emphasised, the way Drive does it, so
-    // there is no doubt what access you got. The card carries app + org.
-    var senderBit = esc(sharer) + ' (<span class="em-sender-email">' + esc(sharerEmail) + '</span>)';
-    var cardSub = 'App in ' + ORG;
+    var senderLink = esc(sharer) + ' (<a class="em-sender-email" href="#" data-act="noop">' + esc(sharerEmail) + '</a>)';
 
-    var heading, invite, cta = 'Open app', footerLine, note = '';
+    var heading, sentence, cta = 'Open Dashboard';
 
     if (type === 'transfer') {
-      heading = sharer + ' made you the owner of &ldquo;July sales&rdquo;';
-      invite = senderBit + ' made you the <strong>owner</strong> of this app:';
-      footerLine = 'You&rsquo;re receiving this because ' + sharer + ' made you the owner of an app in ' + ORG + '.';
+      heading = sharer + ' made you the owner of a dashboard';
+      sentence = senderLink + ' has made you the owner of this dashboard.';
     } else if (type === 'admin') {
-      heading = 'You&rsquo;re now the owner of &ldquo;July sales&rdquo;';
-      invite = 'Your organisation admin made you the <strong>owner</strong> of this app:';
-      footerLine = 'You&rsquo;re receiving this because your organisation admin made you the owner of an app in ' + ORG + ', after the previous owner&rsquo;s account was deactivated.';
+      heading = 'You&rsquo;re now the owner of a dashboard';
+      sentence = 'Your organisation admin has made you the owner of this dashboard.';
     } else {
-      heading = sharer + ' shared an app with you';
-      invite = senderBit + ' has invited you to <strong>' + perm + '</strong> this app:';
-      footerLine = 'You&rsquo;re receiving this because ' + sharer + ' shared an app with you from ' + ORG + '.';
-      if (p.message) {
-        note = '<div class="em-note">' + esc(p.message) + '</div>';
-      }
+      heading = sharer + ' shared a dashboard with you';
+      sentence = senderLink + ' has invited you to ' + perm + ' a dashboard.';
     }
 
     return '<div class="em-doc">' +
       '<div class="em-logo">' + ICON.airaWordmark + '</div>' +
       '<p class="em-greet">Hi ' + esc(fn) + ',</p>' +
       '<h1 class="em-heading">' + heading + '</h1>' +
-      '<p class="em-invite">' + invite + '</p>' +
       '<div class="em-card">' +
         '<span class="em-card-icon">' + ICON.airaMark + '</span>' +
         '<div class="em-card-text">' +
           '<div class="em-card-name">July sales</div>' +
-          '<div class="em-card-sub">' + cardSub + '</div>' +
+          '<div class="em-card-sub">Dashboard</div>' +
         '</div>' +
       '</div>' +
-      note +
+      '<p class="em-invite">' + sentence + '</p>' +
+      '<div class="em-howto">' +
+        '<p class="em-howto-title">' + ICON.shield + '<span>How to access this dashboard</span></p>' +
+        '<p class="em-howto-body">Find it on your aiRA apps page. Just be sure to switch to the <strong>' + ORG + '</strong> org before clicking the link.</p>' +
+      '</div>' +
       '<a class="em-cta" href="#" data-act="noop">' + cta + '</a>' +
-      '<p class="em-foot">' + footerLine + '<br>&copy; 2026 Capillary Technologies. All rights reserved.</p>' +
+      '<p class="em-foot">&copy; 2026 Capillary Technologies. All rights reserved.</p>' +
     '</div>';
   }
 
@@ -1200,9 +1205,9 @@
     if (!p || p.id === S.me) { p = recips[0]; S.emailFor = p.id; }
 
     var subjectMap = {
-      share: 'Ann Francis shared July sales with you',
-      transfer: 'You&rsquo;re now the owner of July sales',
-      admin: 'You&rsquo;re now the owner of July sales'
+      share: 'Ann Francis shared a dashboard with you',
+      transfer: 'You&rsquo;re now the owner of a dashboard',
+      admin: 'You&rsquo;re now the owner of a dashboard'
     };
 
     return '<div class="email-stage">' +
