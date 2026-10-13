@@ -461,8 +461,8 @@
 
   /* Email preview */
   .email-only { display: none; }
-  /* Only show the recipient picker in email view when it actually has people. */
-  body.email-mode #emailFor:not(:empty) { display: inline-block; }
+  body.email-mode .email-only { display: inline-block; }
+  body.email-mode .share-only { display: none; }
   .email-stage { min-height: 100vh; padding: 72px 20px 80px; display: flex; justify-content: center; }
   .email-client {
     width: 600px; max-width: 100%; align-self: flex-start;
@@ -512,8 +512,8 @@
     <option value="share">App sharing</option>
     <option value="email">Email</option>
   </select>
-  <select id="emailFor" class="email-only"></select>
-  <select id="scenario"></select>
+  <select id="scenario" class="share-only"></select>
+  <select id="emailType" class="email-only"></select>
   <button id="btnRestart" type="button">Restart</button>
 </div>
 
@@ -534,7 +534,7 @@
   }
 
   var ICON = {
-    close: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M20 4 4 20M4 4l16 16"/></svg>',
+    close: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
     search: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>',
     chev: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
     chevUp: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>',
@@ -553,7 +553,7 @@
     plus: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
     eye: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
     mailBig: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
-    gear: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><g transform="translate(12 12) scale(0.73) translate(-12 -12)"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></g></svg>',
+    gear: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>',
     pencil: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
     crown: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l4 4 5-7 5 7 4-4-2 12H5L3 7Z"/></svg>',
     airaMark: '<svg width="20" height="20" viewBox="110 110 390 390" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M255.919 172.689L297.488 264.727L389.526 306.296L297.488 347.864L255.919 439.902L214.351 347.864L122.312 306.296L214.351 264.727L255.919 172.689Z" fill="url(#am)"/><path d="M422.38 122.312L443.505 169.086L490.279 190.211L443.505 211.336L422.38 258.109L401.255 211.336L354.482 190.211L401.255 169.086L422.38 122.312Z" fill="url(#am)"/><path d="M422.38 356.672L443.505 403.445L490.279 424.57L443.505 445.695L422.38 492.469L401.255 445.695L354.482 424.57L401.255 403.445L422.38 356.672Z" fill="url(#am)"/><defs><linearGradient id="am" x1="122.313" y1="307.391" x2="490.279" y2="307.391" gradientUnits="userSpaceOnUse"><stop stop-color="#6168FF"/><stop offset="0.473102" stop-color="#475FF2"/><stop offset="1" stop-color="#3BA7FF"/></linearGradient></defs></svg>',
@@ -643,7 +643,7 @@
     partialNext: false,
     confirmOwner: null,         // id of the person a transfer is being confirmed for
     mode: 'share',             // share | email  (reviewer's view toggle)
-    emailFor: null             // which recipient's email is previewed
+    emailType: 'editor'        // which email variant the email view previews
   };
 
   var timers = { load: null, share: null, copy: null, toast: null };
@@ -1180,29 +1180,21 @@
   }
 
   // A recipient is anyone who'd receive mail: everyone shared with, plus a new
-  // owner (transfer or admin). Only the original creator-owner gets nothing.
-  function emailRecipients() {
-    return S.people.filter(function (p) {
-      return p.id !== S.me && (p.role !== 'owner' || p.gotOwner);
-    });
+  // The email view is its own thing, independent of the dashboard scenario:
+  // pick which email to preview. Each type builds a sample recipient.
+  var EMAIL_TYPES = [
+    { id: 'viewer',   name: 'Shared — viewer',  role: 'viewer' },
+    { id: 'editor',   name: 'Shared — editor',  role: 'editor' },
+    { id: 'transfer', name: 'Ownership transfer',    role: 'owner', gotOwner: 'transfer' },
+    { id: 'admin',    name: 'Admin reassigned',      role: 'owner', gotOwner: 'admin' }
+  ];
+  function emailSample() {
+    var t = EMAIL_TYPES.filter(function (x) { return x.id === S.emailType; })[0] || EMAIL_TYPES[1];
+    return { id: 'sample', name: 'Punya Shetty', email: 'punya.shetty@capillarytech.com', role: t.role, gotOwner: t.gotOwner };
   }
 
   function renderEmailView() {
-    var recips = emailRecipients();
-    syncEmailSelect(recips);
-
-    if (!recips.length) {
-      return '<div class="email-stage">' +
-        '<div class="email-empty">' +
-          '<span class="email-empty-icon">' + ICON.mailBig + '</span>' +
-          '<p class="email-empty-title">No emails yet</p>' +
-          '<p class="email-empty-desc">Switch to app sharing, add someone or make them owner, then come back to see what they receive.</p>' +
-        '</div>' +
-      '</div>';
-    }
-
-    var p = personById(S.emailFor);
-    if (!p || p.id === S.me) { p = recips[0]; S.emailFor = p.id; }
+    var p = emailSample();
 
     var subjectMap = {
       share: 'Ann Francis shared a dashboard with you',
@@ -1650,9 +1642,6 @@
 
   var SCENARIOS = [
     { id: 'default', name: 'Only you', apply: function () { reset(); } },
-    { id: 'shared', name: 'Shared with someone', apply: function () {
-        reset(); S.people.push(existingEditor());
-      } },
     { id: 'suggested', name: 'Suggested people', apply: function () {
         reset(); S.suggestions = ['punya', 'rakshit', 'tara'];
       } },
@@ -1671,17 +1660,6 @@
       } },
     { id: 'sharepartial', name: 'Share partly fails', apply: function () {
         reset(); S.partialNext = true;
-      } },
-    { id: 'reassigned', name: 'Owner left — admin reassigned', apply: function () {
-        reset();
-        // The original owner's account is gone; an admin has made Punya owner.
-        S.people = [
-          person('punya', 'Punya Shetty', 'punya.shetty@capillarytech.com', 'owner'),
-          existingEditor(),
-          seed('tara', 'viewer')
-        ];
-        S.people[0].gotOwner = 'admin';
-        S.me = 'owner'; // the departed original owner, absent from the list
       } }
   ];
 
@@ -1708,28 +1686,23 @@
   }).join('');
   scenarioSel.onchange = function () { goScenario(scenarioSel.value); };
 
-  // View toggle: app sharing vs. the email a chosen person receives.
+  // View toggle: the app-sharing dialog vs. the email a recipient receives.
+  // Each view carries its own selector, so email variants don't mix with the
+  // dialog scenarios (many of which have no email).
   var viewModeSel = document.getElementById('viewMode');
-  var emailForSel = document.getElementById('emailFor');
+  var emailTypeSel = document.getElementById('emailType');
 
-  function syncEmailSelect(recips) {
-    if (!emailForSel) return;
-    var html = recips.map(function (p) {
-      var t = emailType(p);
-      var suffix = t === 'share' ? (p.role === 'editor' ? ' — editor' : ' — viewer') : ' — owner';
-      return '<option value="' + p.id + '">' + esc(p.name + suffix) + '</option>';
-    }).join('');
-    if (emailForSel.innerHTML !== html) emailForSel.innerHTML = html;
-    var has = recips.some(function (p) { return p.id === S.emailFor; });
-    emailForSel.value = has ? S.emailFor : (recips[0] ? recips[0].id : '');
-  }
+  emailTypeSel.innerHTML = EMAIL_TYPES.map(function (t) {
+    return '<option value="' + t.id + '">' + esc(t.name) + '</option>';
+  }).join('');
+  emailTypeSel.value = S.emailType;
 
   viewModeSel.onchange = function () {
     S.mode = viewModeSel.value;
     document.body.classList.toggle('email-mode', S.mode === 'email');
     render();
   };
-  emailForSel.onchange = function () { S.emailFor = emailForSel.value; render(); };
+  emailTypeSel.onchange = function () { S.emailType = emailTypeSel.value; render(); };
 
   document.getElementById('btnRestart').onclick = function () { goScenario(scenarioSel.value); };
 
